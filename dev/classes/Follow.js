@@ -20,7 +20,7 @@ class Follow{
         if(this.authors.indexOf(author) == -1)
         this.authors.push(author);
     }
-    
+
     unfollowAuthor(author){
         let i = this.authors.indexOf(author);
         if(i != -1) delete this.authors[i];
@@ -35,10 +35,21 @@ class Follow{
         let i = this.ids.indexOf(id);
         if(i != -1) delete this.ids[i];
     }
+
+    parseObj(obj){
+        for(let i in obj)
+            this[i] = obj[i];
+    }
 }
-Follow.__users = readBD("follows.json", {});
+Follow.__users = {};
 Follow.writeBD = function(){
     fs.writeFile("follows.json", JSON.stringify(Follow.__users), ()=>{});
+}
+Follow.readDB = function(){
+    if(!fs.existsSync("follows.json")) return;
+    let users = JSON.parse(fs.readFileSync("follows.json"))
+    for(let i in users)
+        Follow.getFor(i).parseObj(users[i]);
 }
 Follow.getFor = function(id){
     if(!Follow.__users[id])
@@ -74,4 +85,5 @@ Follow.getPeersFollowMod = function(id){
     return arr;
 }
 
+Follow.readDB();
 setTimeout(Follow.writeBD, 60000)
