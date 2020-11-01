@@ -21,6 +21,7 @@ var ICModsAPI = {
             qs:params
         });
     },
+    
     description:function(id){
         if(!isInt(id))
             throw new TypeError("id was been Int");

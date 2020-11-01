@@ -17,3 +17,19 @@ ${mod.description}
 Страница мода: https://icmods.mineprogramming.org/mod?id=${mod.id}
 Скачать мод: https://icmods.mineprogramming.org/api/download?id=${mod.id}`);
 });
+
+new Command("Statistic download", "Статистика\\sзагрузок\\s([0-9]+)", async function(args, msg){
+    let mods = await ICModsAPI.searchModsFromAuthor(parseInt(args[1]));
+    if(mods.length == 0)
+        return msg.reply("Моды автора не найдены.");
+    
+    let str = "";
+    let downloads = 0;
+    for(let i in mods){
+        let mod = await ICModsAPI.description(mods[i].id);
+        str += `${mod.title}: ${beautifyNumber(mod.downloads, " ")}\n`;
+        downloads += mod.downloads;
+    }
+    str += "\nОбщее количество загрузок: " + beautifyNumber(downloads, " ");
+    msg.reply(str);
+});
