@@ -1,10 +1,13 @@
 var ICModsAPI = {
+    DEBUG:false,
     host:"https://icmods.mineprogramming.org/api/",
     horizon:true,
     Sort:function(sort){
         this.value = sort;
     },
     method:function(method, params = {}){
+        if(ICModsAPI.DEBUG) console.log(method, params);
+
         if(typeof method != "string")
             throw new TypeError("method was been String");
 
@@ -42,7 +45,7 @@ var ICModsAPI = {
         return ICModsAPI.method("list", {
             sort:sort.value,
             start:offset,
-            limit:limit
+            count:limit
         });
     },
     listForIDs:function(ids){
