@@ -1,7 +1,7 @@
 (new ListenerList())
 .setInterval(10000)
 .setOnNewMod(function(mod){
-    let peers = Follow.getPeersFollowAll();
+    let peers = Follow.getPeersFollowNew();
     for(let i in peers){
         VKAPI.invokeMethod("messages.send", {
             random_id:0,
