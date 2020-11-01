@@ -1,7 +1,12 @@
 header.js
-sec.js
 
 classes/ICModsAPI.js
 classes/ListenerList.js
+classes/Command.js
+classes/VKAPI.js
+
+init-commands.js
+sec.js
+VK_bot.js
 
 listeners.js
