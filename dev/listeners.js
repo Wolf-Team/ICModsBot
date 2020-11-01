@@ -34,7 +34,8 @@ ${mod.description}
 
 Автор: ${mod.author_name}
 Теги: ${mod.tags.join(", ")}
-ChangeLog: ${mod.changelog}
+ChangeLog:
+${mod.changelog}
 
 Страница мода: https://icmods.mineprogramming.org/mod?id=${mod.id}
 Скачать мод: https://icmods.mineprogramming.org/api/download?id=${mod.id}`

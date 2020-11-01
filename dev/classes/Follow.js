@@ -1,4 +1,6 @@
 class Follow{
+    all = false;
+    new = false;
     ids = [];
 
     constructor(user){
@@ -7,6 +9,10 @@ class Follow{
 
     followAll(check = true){
         this.all = check;
+    }
+
+    followNew(check = true){
+        this.new = check;
     }
 
     add(id){
@@ -38,6 +44,15 @@ Follow.getPeersFollowAll = function(){
 
     return arr;
 }
+Follow.getPeersFollowNew = function(){
+    let arr = []
+
+    for(let i in Follow.__users)
+        if(Follow.__users[i].all || Follow.__users[i].new)
+            arr.push(i);
+
+    return arr;
+}
 Follow.getPeersFollowMod = function(id){
     let arr = []
 
@@ -48,4 +63,4 @@ Follow.getPeersFollowMod = function(id){
     return arr;
 }
 
-setTimeout(Follow.writeBD, 10 * 60000)
+setTimeout(Follow.writeBD, 60000)

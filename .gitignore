@@ -105,3 +105,4 @@ dist
 .vscode/*
 dev/sec.js
 main.js
+follows.json
