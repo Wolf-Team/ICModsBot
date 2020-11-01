@@ -1,46 +1,76 @@
 class ListenerList{
-    sort = ICModsAPI.Sort.POPULAR;
+    sort = ICModsAPI.Sort.UPDATED;
     interval = 60000;
 
     constructor(sort, interval = 60000){
-        if(sort !== undefined){
-            if(!sort instanceof ICModsAPI.Sort)
-                throw new TypeError("sort was been ICModsAPI.Sort");
-                
-            this.sort = sort;
-        }
-        if(interval !== undefined){
-            if(!isInt(interval))
-                throw new TypeError("interval was been Int");
-                    
-            this.interval = interval;
-        }
+        if(sort !== undefined)
+            this.setSort(sort);
+
+        if(interval !== undefined)
+            this.setInterval(interval);
 
         this._check = this._check.bind(this);
     }
 
-    setListener(event){
-        this._event = event;
+    setInterval(interval){
+        if(!isInt(interval))
+            throw new TypeError("interval was been Int");
+                
+        this.interval = interval;
+        return this;
+    }
+    setSort(sort){
+        if(!sort instanceof ICModsAPI.Sort)
+            throw new TypeError("sort was been ICModsAPI.Sort");
+                
+        this.sort = sort;
+        return this;
+    }
+
+    OnNewMod(){}
+    setOnNewMod(event){
+        this.OnNewMod = event.bind(this);
+        return this;
+    }
+
+    OnUpdateMod(){}
+    setOnUpdateMod(event){
+        this.OnUpdateMod = event.bind(this);
         return this;
     }
 
     async _check(){
-        let res = await ICModsAPI.list(this.sort, 0, 1);
-        let new_timestamp = new Date(res[0].last_update).getTime();
-        if(this.timestamp < new_timestamp){
-            let timestemp = new_timestamp;
+        let checkMod = (await ICModsAPI.list(this.sort, 0, 1))[0];
+        let new_timestemp = (new Date(checkMod.last_update)).getTime();
+        if(this.timestemp < new_timestemp){
+            let timestemp = new_timestemp, offset = 0;
+            while(timestemp > this.timestemp){
+                let mods = await ICModsAPI.list(this.sort, offset * 20, 20);
+                
+                for(let i = 0; i < 20; i++){
+                    let mod = mods[i];
+                    timestemp = (new Date(mod.last_update)).getTime();
+                    if(timestemp <= this.timestemp) break;
 
-            let mods = await ICModsAPI.list(this.sort, 0, 20);
-            for(let i = 0; i < 20 && timestemp > this.timestamp; i++){
-                this._event(mods[i]);
+                    let mod_info = await ICModsAPI.getModInfo(mod.id);
+                    if(mod_info.version == 1)
+                        this.OnNewMod(mod_info);
+                    else
+                        this.OnUpdateMod(mod_info);
+                }
+
+                offset++;
             }
+            this.timestemp = new_timestemp;
         }
     }
 
+    _start(mod){
+        this.timestemp = (new Date(mod.last_update)).getTime();
+    }
+
     async start(){
-        let r = await ICModsAPI.list(this.sort, 0, 1);
-        this.timestamp = new Date(r[0].last_update).getTime();
-        this.mod = r[0].id;
+        this._start((await ICModsAPI.list(this.sort, 0, 1))[0]);
         this.timer = setInterval(this._check, this.interval)
     }
 
@@ -48,5 +78,4 @@ class ListenerList{
         clearInterval(this.timer);
         this.timer = null;
     }
-
 }
