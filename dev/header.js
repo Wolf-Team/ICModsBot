@@ -1,4 +1,5 @@
-const request = require('request-promise-native');
+const request = require('request-promise-native'),
+      fs = require("fs");
 
 function isInt(a){
     return typeof a == "number" && a == parseInt(a)
@@ -13,4 +14,8 @@ function beautifyNumber(n, point = ",") {
             str = point + str;
     }
     return str;
+}
+
+function readBD(file, def = {}){
+	return fs.existsSync(file) ? JSON.parse(fs.readFileSync(file)) : def;
 }

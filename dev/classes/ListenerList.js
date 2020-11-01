@@ -53,6 +53,7 @@ class ListenerList{
                     if(timestemp <= this.timestemp) break;
 
                     let mod_info = await ICModsAPI.getModInfo(mod.id);
+                    mod_info.description = mod.description;
                     if(mod_info.version == 1)
                         this.OnNewMod(mod_info);
                     else

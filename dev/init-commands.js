@@ -33,3 +33,38 @@ new Command("Statistic download", "Статистика\\sзагрузок\\s([0
     str += "\nОбщее количество загрузок: " + beautifyNumber(downloads, " ");
     msg.reply(str);
 });
+
+new Command("Подписаться на обновления", "подписаться\\sна\\sобновления\\s([0-9]+|модов)", async function(args, msg){
+    let id = parseInt(args[1]);
+    let following = Follow.getFor(msg.peer_id);
+    let message = "";
+    if(isNaN(id)){
+        following.followAll(true);
+        message = "Вы подписались на уведомления об обновлении всех модов."
+    }else{
+        let mod = await ICModsAPI.description(id);
+        if(mod.error){
+           message = `Мод с id ${id} не найден`; 
+        }else{
+            following.add(id);
+            message = `Вы подписались на уведомления об обновлении ${mod.title}.`
+        }
+    }
+    msg.reply(message);
+})
+
+new Command("Подписки", "подписки", function(args, msg){
+    let peer = Follow.getFor(msg.peer_id);
+    if(peer.all)
+        return msg.reply("Вы следите за всеми модами.");
+
+    let mess = "Вы следите за следующими модами:";
+    let mods = await ICModsAPI.listForIDs(peer.ids);
+    for(let i in mods){
+        let mod = mods[i];
+        mess += `\n${mod.title} - https://icmods.mineprogramming.org/mod?id=${mod.id}`;
+    }
+
+    msg.reply(mess);
+
+});

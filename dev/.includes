@@ -4,6 +4,7 @@ classes/ICModsAPI.js
 classes/ListenerList.js
 classes/Command.js
 classes/VKAPI.js
+classes/Follow.js
 
 init-commands.js
 sec.js
