@@ -12,11 +12,14 @@ ${mod.title} [${mod.version_name}]
 
 ${mod.description}
 
-Автор: ${mod.author_name}
-Теги: ${mod.tags.join(", ")}
-` + (mod.github != "" ? `GitHub: ${mod.github}\n` : "") + `
-Страница мода: https://icmods.mineprogramming.org/mod?id=${mod.id}
-Скачать мод: https://icmods.mineprogramming.org/api/download?id=${mod.id}`
+👤 Автор: ${mod.author_name}
+🔗 Теги: ${mod.tags.join(", ")}
+` +
+(mod.github != "" ? `📝 GitHub: ${mod.github}\n` : "") +
+(mod.multiplayer == "1" ? "👥 Мультиплеер" : "") + 
+`
+📋 Страница мода: https://icmods.mineprogramming.org/mod?id=${mod.id}
+📥 Скачать мод: https://icmods.mineprogramming.org/api/download?id=${mod.id}`
         });
     }
 })
@@ -32,14 +35,17 @@ ${mod.title} [${mod.version_name}]
 
 ${mod.description}
 
-Автор: ${mod.author_name}
-Теги: ${mod.tags.join(", ")}
-` + (mod.github != "" ? `GitHub: ${mod.github}\n` : "") + `
-ChangeLog:
+👤 Автор: ${mod.author_name}
+🔗 Теги: ${mod.tags.join(", ")}
+` +
+(mod.github != "" ? `📝 GitHub: ${mod.github}\n` : "") +
+(mod.multiplayer == "1" ? "👥 Мультиплеер" : "") + 
+`
+📄 ChangeLog:
 ${mod.changelog}
 
-Страница мода: https://icmods.mineprogramming.org/mod?id=${mod.id}
-Скачать мод: https://icmods.mineprogramming.org/api/download?id=${mod.id}`
+📋 Страница мода: https://icmods.mineprogramming.org/mod?id=${mod.id}
+📥 Скачать мод: https://icmods.mineprogramming.org/api/download?id=${mod.id}`
         });
     }
 })
