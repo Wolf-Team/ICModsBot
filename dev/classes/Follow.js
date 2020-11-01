@@ -2,6 +2,7 @@ class Follow{
     all = false;
     new = false;
     ids = [];
+    authors = [];
 
     constructor(user){
         Follow.__users[user] = this;
@@ -15,12 +16,22 @@ class Follow{
         this.new = check;
     }
 
-    add(id){
+    followAuthor(author){
+        if(this.authors.indexOf(author) == -1)
+        this.authors.push(author);
+    }
+    
+    unfollowAuthor(author){
+        let i = this.authors.indexOf(author);
+        if(i != -1) delete this.authors[i];
+    }
+
+    followMod(id){
         if(this.ids.indexOf(id) == -1)
             this.ids.push(id);
     }
 
-    remove(id){
+    unfollowMod(id){
         let i = this.ids.indexOf(id);
         if(i != -1) delete this.ids[i];
     }
