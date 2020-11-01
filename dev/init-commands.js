@@ -13,7 +13,7 @@ ${mod.description}
 Лайков: ${mod.likes}
 Последнее обновление: ${mod.last_update}
 Теги: ${mod.tags.join(", ")}
-
+` + (mod.github != "" ? `GitHub: ${mod.github}\n` : "") + `
 Страница мода: https://icmods.mineprogramming.org/mod?id=${mod.id}
 Скачать мод: https://icmods.mineprogramming.org/api/download?id=${mod.id}`);
 });
