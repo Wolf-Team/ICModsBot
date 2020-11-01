@@ -1,0 +1,6 @@
+{
+	"buldDirs":[{
+		"buildFolder":"dev",
+		"targeetBuild":"main.js"
+	}]
+}
