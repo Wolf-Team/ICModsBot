@@ -19,3 +19,17 @@ function beautifyNumber(n, point = ",") {
 function readBD(file, def = {}){
 	return fs.existsSync(file) ? JSON.parse(fs.readFileSync(file)) : def;
 }
+
+async function isAdmin(user_id, chat_id){
+	if(!VKAPI.isChat(chat_id))
+		return true;
+	
+	let r = await VKAPI.invokeMethod("messages.getConversationsById", {
+		peer_ids:VKAPI.getPeerIDfromChat(chat_id)
+	});
+	if(r.error) throw r.error;
+	if(r.count == 0) throw "no_perms";
+	let sett = r.items[0].chat_settings;
+	if(sett.owner_id == user_id) return true;
+	return sett.admin_ids.indexOf(user_id)!=-1;
+}

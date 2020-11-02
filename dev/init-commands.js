@@ -18,7 +18,7 @@ ${mod.description}
 (mod.multiplayer == "1" ? "👥 Мультиплеер" : "") + 
 `
 📋 Страница мода: https://icmods.mineprogramming.org/mod?id=${mod.id}
-📥 Скачать мод: https://icmods.mineprogramming.org/api/download?id=${mod.id}`);
+📥 Скачать мод: https://icmods.mineprogramming.org/api/download?horizon&id=${mod.id}`);
 });
 
 new Command("Statistic download", "Статистика\\sзагрузок\\s([0-9]+)", async function(args, msg){
@@ -38,9 +38,17 @@ new Command("Statistic download", "Статистика\\sзагрузок\\s([0
 });
 
 new Command("Подписаться на обновления", "(под|от)писаться\\s(?:на|от)\\sобновлени(?:я|й)\\s([0-9]+|модов)", async function(args, msg){
+    try{
+        if(!(await isAdmin(msg.from_id, msg.peer_id))) return;
+    }catch(e){
+        if(e == "no_perms")
+            e = "Для подписки на уведомления, боту нужны права администратора.";
+        return msg.reply(e);
+    }
+
     let id = parseInt(args[2]);
     let follow = args[1].toLowerCase() == "под";
-
+    
     let following = Follow.getFor(msg.peer_id);
     let message = "";
     if(isNaN(id)){
@@ -64,14 +72,30 @@ new Command("Подписаться на обновления", "(под|от)п
     msg.reply(message);
 });
 
-new Command("Подписаться на новые моды", "(под|от)писаться\\s(?:на|от)\\sновы(?:е|х)\\sмод(?:ы|ов)", function(args, msg){
+new Command("Подписаться на новые моды", "(под|от)писаться\\s(?:на|от)\\sновы(?:е|х)\\sмод(?:ы|ов)", async function(args, msg){
+    try{
+        if(!(await isAdmin(msg.from_id, msg.peer_id))) return;
+    }catch(e){
+        if(e == "no_perms")
+            e = "Для подписки на уведомления, боту нужны права администратора.";
+        return msg.reply(e);
+    }
+    
     let follow = args[1].toLowerCase() == "под";
 
     Follow.getFor(msg.peer_id).followNew(follow);
     msg.reply(follow ? "Вы подписались на уведомления о загрузке новых модов." : "Вы отписались от уведомлений о загрузке новых модов.");
 });
 
-new Command("Подписаться на автора", "(под|от)писаться\\s(?:на|от)\\sавтора\\s([0-9]+)", function(args, msg){
+new Command("Подписаться на автора", "(под|от)писаться\\s(?:на|от)\\sавтора\\s([0-9]+)", async function(args, msg){
+    try{
+        if(!(await isAdmin(msg.from_id, msg.peer_id))) return;
+    }catch(e){
+        if(e == "no_perms")
+            e = "Для подписки на уведомления, боту нужны права администратора.";
+        return msg.reply(e);
+    }
+    
     let id = parseInt(args[2]);
     let follow = args[1].toLowerCase() == "под";
 
@@ -100,7 +124,7 @@ new Command("Подписки", "подписки", async function(args, msg){
         let mods = await ICModsAPI.listForIDs(peer.ids);
         for(let i in mods){
             let mod = mods[i];
-            mess += `${mod.title} - https://icmods.mineprogramming.org/mod?id=${mod.id}\n`;
+            mess += `🔷 ${mod.title} - https://icmods.mineprogramming.org/mod?id=${mod.id}\n`;
         }
     }
 
@@ -108,7 +132,7 @@ new Command("Подписки", "подписки", async function(args, msg){
         mess += "Вы следите за авторами:\n";
         for(let i in peer.authors){
             let author = peer.authors[i];
-            mess += `${author} - https://icmods.mineprogramming.org/search?author=${author}`;
+            mess += `🔷 ${author} - https://icmods.mineprogramming.org/search?author=${author}\n`;
         }
     }
 
@@ -129,3 +153,10 @@ new Command("Помощь", "помощь", (a, msg) => msg.reply(
 🔷 Статистика загрузок (ID автора) - Статистика загрузок модов автора
 ===== Помощь =====`
 ))
+
+new Command("/save", "\\/save", (a, msg) => {
+    if(VKAPI.isChat(msg.peer_id) || msg.from_id != 93821471) return;
+
+    Follow.writeBD();
+    msg.reply("Записано, вырубай!");
+});

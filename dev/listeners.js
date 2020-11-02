@@ -19,7 +19,7 @@ ${mod.description}
 (mod.multiplayer == "1" ? "👥 Мультиплеер" : "") + 
 `
 📋 Страница мода: https://icmods.mineprogramming.org/mod?id=${mod.id}
-📥 Скачать мод: https://icmods.mineprogramming.org/api/download?id=${mod.id}`
+📥 Скачать мод: https://icmods.mineprogramming.org/api/download?horizon&id=${mod.id}`
         });
     }
 })
