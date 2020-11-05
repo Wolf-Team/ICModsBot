@@ -76,16 +76,28 @@ class Dialogue{
     }
 
     followNewMods(){
+        if(this.followingNewMods)
+            throw new Error(`New mods are already being tracked.`);
+
         this.followingNewMods = true;
     }
     unfollowNewMods(){
+        if(!this.followingNewMods)
+            throw new Error(`New mods are not tracked.`);
+
         this.followingNewMods = false;
     }
 
     followAllMods(){
+        if(this.followingAllMods)
+            throw new Error(`All mods are already being tracked.`);
+
         this.followingAllMods = true;
     }
     unfollowAllMods(){
+        if(!this.followingAllMods)
+            throw new Error(`All mods are not tracked.`);
+
         this.followingAllMods = false;
     }
 
