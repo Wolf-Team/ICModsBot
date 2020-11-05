@@ -18,13 +18,14 @@ app.all("/hooks", async function(req, res){
     if(!req.body || !req.body.type)
         return res.sendStatus(400);
 
-    let mod, msg, peers;
-    if(req.body.mod_id){
-        mod = await ICModsAPI.getModInfo(req.body.mod_id);
-        mod.description = (await ICModsAPI.listForIDs([req.body.mod_id]))[0].description;
+    let event = req.body, mod, msg, peers;
+
+    if(event.mod_id){
+        mod = await ICModsAPI.getModInfo(event.mod_id);
+        mod.description = (await ICModsAPI.listForIDs([event.mod_id]))[0].description;
     }
 
-    switch(req.body.type){
+    switch(event.type){
         case "test":
             VKAPI.invokeMethod("messages.send", {
                 random_id:0,
@@ -40,7 +41,11 @@ app.all("/hooks", async function(req, res){
                 multiplayer:true
             });
 
-            peers = Follow.getPeersFollowNew(mod.author);
+            peers = Follow.getPeersFollowing({
+                author:mod.author,
+                mod:mod.id,
+                new:true
+            });
             for(let i in peers)
                 VKAPI.invokeMethod("messages.send", {
                     random_id:0,
@@ -57,7 +62,10 @@ app.all("/hooks", async function(req, res){
                 changelog:true
             });
 
-            peers = Follow.getPeersFollowMod(mod.id);
+            peers = Follow.getPeersFollowing({
+                author:mod.author,
+                mod:mod.id
+            });
             for(let i in peers)
                 VKAPI.invokeMethod("messages.send", {
                     random_id:0,
@@ -67,6 +75,25 @@ app.all("/hooks", async function(req, res){
         
             break;
         case "comment_add":
+            msg = printComment({
+                mod_name:mod.title,
+                mod_id:mod.id,
+                author:event.user_id,
+                comment:event.comment
+            });
+            
+            peers = Follow.getPeersFollowing({
+                author:mod.author,
+                mod:mod.id
+            });
+
+            for(let i in peers)
+                VKAPI.invokeMethod("messages.send", {
+                    random_id:0,
+                    peer_id:peers[i],
+                    message:msg
+                });
+        
             break;
 
         case "mod_edit":

@@ -61,3 +61,12 @@ function printMod(mod, settings){
 	str += `\n📋 Страница мода: https://icmods.mineprogramming.org/mod?id=${mod.id}\n📥 Скачать мод: https://icmods.mineprogramming.org/api/download?horizon&id=${mod.id}`
 	return str;
 }
+
+function printComment(settings){
+	return `Новый комментарий под модом ${settings.mod_titile}!
+
+👤 Автор ${settings.author}
+- ${settings.comment}
+
+📋 Страница мода: https://icmods.mineprogramming.org/mod?id=${settings.mod_id}`
+}

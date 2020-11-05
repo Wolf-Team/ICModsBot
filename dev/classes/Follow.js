@@ -86,6 +86,21 @@ Follow.getPeersFollowMod = function(id){
 
     return arr;
 }
+Follow.getPeersFollowing = function(obj){
+    let arr = []
+
+    for(let i in Follow.__users){
+        let user = Follow.__users[i];
+        if( user.all ||
+            (obj.new && user.new) ||
+            (obj.author && user.authors.indexOf(obj.author) != -1) ||
+            (obj.mod && users.ids.indexOf(obj.mod) != -1)
+        )
+            arr.push(i);
+    }
+
+    return arr;
+}
 
 Follow.readDB();
 setTimeout(Follow.writeBD, 60000)
