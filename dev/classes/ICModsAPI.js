@@ -2,8 +2,11 @@ var ICModsAPI = {
     DEBUG:false,
     host:"https://icmods.mineprogramming.org/api/",
     horizon:true,
-    defaultLang:"ru",
+    defaultLang:null,
     Sort:function(sort){
+        this.value = sort;
+    },
+    Lang:function(sort){
         this.value = sort;
     },
     method:function(method, params = {}){
@@ -17,6 +20,9 @@ var ICModsAPI = {
 
         if(!params.lang)
             params.lang = ICModsAPI.defaultLang;
+
+        if(params.lang instanceof ICModsAPI.Lang)
+            params.lang = params.lang.value;
             
         return request({
             url:ICModsAPI.host + method,
@@ -90,5 +96,8 @@ ICModsAPI.Sort.NEW = new ICModsAPI.Sort("new");
 ICModsAPI.Sort.REDACTION = new ICModsAPI.Sort("redaction");
 ICModsAPI.Sort.UPDATED = new ICModsAPI.Sort("updated");
 
+ICModsAPI.defaultLang =
+ICModsAPI.Lang.RU = new ICModsAPI.Lang("ru");
+ICModsAPI.Lang.EN = new ICModsAPI.Lang("en");
 
 ICModsAPI.getModInfo = ICModsAPI.description;
