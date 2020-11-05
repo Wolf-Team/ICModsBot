@@ -1,5 +1,6 @@
 const request = require('request-promise-native'),
-      fs = require("fs");
+	  fs = require("fs"),
+	  express = require('express');
 
 function isInt(a){
     return typeof a == "number" && a == parseInt(a)
@@ -32,4 +33,29 @@ async function isAdmin(user_id, chat_id){
 	let sett = r.items[0].chat_settings;
 	if(sett.owner_id == user_id) return true;
 	return sett.admin_ids.indexOf(user_id)!=-1;
+}
+
+function printMod(mod, settings){
+	let str = settings.title ? settings.title + "\n\n" : "";
+
+	str += `${mod.title} [${mod.version_name}]\n\n${mod.description}\n\n👤 Автор: ${mod.author_name}\n`;
+	
+	if(settings.downloads)
+		str += `📥 Скачиваний: ${mod.downloads}\n`;
+	if(settings.likes)
+		str += `❤ Лайков: ${mod.likes}\n`;
+	if(settings.last_update)
+		str += `🕑 Последнее обновление: ${mod.last_update}\n`;
+	if(settings.tags)
+		str += `🔗 Теги: ${mod.tags.join(", ")}\n`;
+	if(settings.github && mod.github)
+		str += `📝 GitHub: ${mod.github}\n`;
+	if(settings.multiplayer && mod.multiplayer == 1)
+		str += "👥 Поддержка мультиплеера\n";
+
+	if(settings.changelog)
+		str+= `\n📄 ChangeLog:\n${mod.changelog}\n`;
+
+	str += `\n📋 Страница мода: https://icmods.mineprogramming.org/mod?id=${mod.id}\n📥 Скачать мод: https://icmods.mineprogramming.org/api/download?horizon&id=${mod.id}`
+	return str;
 }

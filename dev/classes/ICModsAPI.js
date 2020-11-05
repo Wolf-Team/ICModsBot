@@ -2,6 +2,7 @@ var ICModsAPI = {
     DEBUG:false,
     host:"https://icmods.mineprogramming.org/api/",
     horizon:true,
+    defaultLang:"ru",
     Sort:function(sort){
         this.value = sort;
     },
@@ -13,6 +14,9 @@ var ICModsAPI = {
 
         if(ICModsAPI.horizon)
             params.horizon = true;
+
+        if(!params.lang)
+            params.lang = ICModsAPI.defaultLang;
             
         return request({
             url:ICModsAPI.host + method,
@@ -22,15 +26,16 @@ var ICModsAPI = {
         });
     },
     
-    description:function(id){
+    description:function(id, lang){
         if(!isInt(id))
             throw new TypeError("id was been Int");
 
         return ICModsAPI.method("description", {
-            id:id
+            id:id,
+            lang:lang
         });
     },
-    list:function(sort, offset = 0, limit = 20){
+    list:function(sort, offset = 0, limit = 20, lang){
         if(sort === undefined)
             sort = ICModsAPI.Sort.POPULAR;
 
@@ -46,10 +51,11 @@ var ICModsAPI = {
         return ICModsAPI.method("list", {
             sort:sort.value,
             start:offset,
-            count:limit
+            count:limit,
+            lang:lang
         });
     },
-    listForIDs:function(ids){
+    listForIDs:function(ids, lang){
         if(!ids instanceof Array)
             throw new TypeError("ids was been Array<Int>");
         
@@ -57,24 +63,25 @@ var ICModsAPI = {
             throw new TypeError("ids was been Array<Int>");
 
         return ICModsAPI.method("list", {
-            ids:ids.join(",")
+            ids:ids.join(","),
+            lang:lang
         });
     },
-    searchModsFromAuthor:function(id){
+    searchModsFromAuthor:function(id, lang){
         if(!isInt(id))
             throw new TypeError("id was been Int");
 
-        return ICModsAPI.method("search", { author:id });
+        return ICModsAPI.method("search", { author:id, lang:lang });
     },
-    searchModsAtTag:function(tag){
+    searchModsAtTag:function(tag, lang){
         if(typeof tag != "string")
             throw new TypeError("tag was been String");
-        return ICModsAPI.method("search", { tag:tag });
+        return ICModsAPI.method("search", { tag:tag, lang:lang });
     },
-    searchMods:function(query){
+    searchMods:function(query, lang){
         if(typeof query != "string")
             throw new TypeError("query was been String");
-        return ICModsAPI.method("search", { q:query });
+        return ICModsAPI.method("search", { q:query, lang:lang });
     },
 }
 

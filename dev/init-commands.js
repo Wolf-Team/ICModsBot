@@ -4,21 +4,17 @@ new Command("ID", "(?:(?:\\/)?id|мод|mod)\\s([0-9]+)", async function (args, 
         return msg.reply("Мод с данным ID не найден.");
 
     mod.description = (await ICModsAPI.listForIDs([mod.id]))[0].description;
-    msg.reply(`${mod.title} [${mod.version_name}]
 
-${mod.description}
+    
 
-👤 Автор: ${mod.author_name}
-📥 Скачиваний: ${mod.downloads}
-❤ Лайков: ${mod.likes}
-🕑 Последнее обновление: ${mod.last_update}
-🔗 Теги: ${mod.tags.join(", ")}
-`+
-(mod.github != "" ? `📝 GitHub: ${mod.github}\n` : "") +
-(mod.multiplayer == "1" ? "👥 Мультиплеер" : "") + 
-`
-📋 Страница мода: https://icmods.mineprogramming.org/mod?id=${mod.id}
-📥 Скачать мод: https://icmods.mineprogramming.org/api/download?horizon&id=${mod.id}`);
+    msg.reply(printMod(mod, {
+        downloads:true,
+        likes:true,
+        last_update:true,
+        tags:true,
+        github:true,
+        multiplayer:true
+    }));
 });
 
 new Command("Statistic download", "Статистика\\sзагрузок\\s([0-9]+)", async function(args, msg){
@@ -142,7 +138,7 @@ new Command("Подписки", "подписки", async function(args, msg){
     msg.reply(mess);
 });
 
-new Command("Помощь", "помощь", (a, msg) => msg.reply(
+new Command("Помощь", "(помощь|начать)", (a, msg) => msg.reply(
 `===== Помощь =====
 🔷 Мод (ID мода) - Вывести информацию о моде
 🔷 Подписки - Информация о подписках на уведомления
