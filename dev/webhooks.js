@@ -19,10 +19,12 @@ app.all("/hooks", async function(req, res){
         return res.sendStatus(400);
 
     let event = req.body, mod, msg, peers;
+    console.log(event);
 
     if(event.mod_id){
         mod = await ICModsAPI.getModInfo(event.mod_id);
-        mod.description = (await ICModsAPI.listForIDs([event.mod_id]))[0].description;
+        if(mod.enabled == 1)
+            mod.description = (await ICModsAPI.listForIDs([event.mod_id]))[0].description;
     }
 
     switch(event.type){
@@ -78,7 +80,7 @@ app.all("/hooks", async function(req, res){
             msg = printComment({
                 mod_title:mod.title,
                 mod_id:mod.id,
-                author:event.user_id,
+                author:mod.comments[0].user,
                 comment:event.comment
             });
 

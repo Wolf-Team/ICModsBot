@@ -35,7 +35,7 @@ class Dialogue{
             if( user.followingAllMods ||
                 (obj.new && user.followingNewMods) ||
                 (obj.author && user.followingAuthors.indexOf(obj.author) != -1) ||
-                (obj.mod && users.followingMods.indexOf(obj.mod) != -1)
+                (obj.mod && user.followingMods.indexOf(obj.mod) != -1)
             )
                 arr.push(i);
         }
