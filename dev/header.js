@@ -2,6 +2,8 @@ const request = require('request-promise-native'),
 	  fs = require("fs"),
 	  express = require('express');
 
+const config = JSON.parse(fs.readFileSync("config.json"));
+
 function isInt(a){
     return typeof a == "number" && a == parseInt(a)
 }

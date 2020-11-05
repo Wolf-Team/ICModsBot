@@ -66,12 +66,14 @@ Follow.getPeersFollowAll = function(){
 
     return arr;
 }
-Follow.getPeersFollowNew = function(){
+Follow.getPeersFollowNew = function(author_id){
     let arr = []
 
-    for(let i in Follow.__users)
-        if(Follow.__users[i].all || Follow.__users[i].new)
+    for(let i in Follow.__users){
+        let user = Follow.__users[i];
+        if(user.all || user.new || user.authors.indexOf(author_id) != -1)
             arr.push(i);
+    }
 
     return arr;
 }

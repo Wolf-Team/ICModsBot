@@ -1,4 +1,4 @@
-const app = express(), port = 20013;
+const app = express();
 app.use(express.json());
 
 /** type             | params
@@ -14,26 +14,33 @@ app.use(express.json());
   * user_register     | user_id
 **/
 
-app.all("/hooks", function(req, res){
+app.all("/hooks", async function(req, res){
     if(!req.body || !req.body.type)
         return res.sendStatus(400);
 
-    let mod;
+    let mod, msg, peers;
     if(req.body.mod_id){
-        mod = await ICModsAPI.getModInfo(mod.id);
-        mod.description = (await ICModsAPI.listForIDs([mod.id]))[0].description;
+        mod = await ICModsAPI.getModInfo(req.body.mod_id);
+        mod.description = (await ICModsAPI.listForIDs([req.body.mod_id]))[0].description;
     }
 
     switch(req.body.type){
+        case "test":
+            VKAPI.invokeMethod("messages.send", {
+                random_id:0,
+                peer_id:config.owner,
+                message:"Тестовый хук"
+            });
+            break;
         case "mod_add":
-            let msg = printMod(mod, {
+            msg = printMod(mod, {
                 title: "Загружен новый мод!",
                 tags:true,
                 github:true,
                 multiplayer:true
             });
 
-            let peers = Follow.getPeersFollowNew();
+            peers = Follow.getPeersFollowNew(mod.author);
             for(let i in peers)
                 VKAPI.invokeMethod("messages.send", {
                     random_id:0,
@@ -42,7 +49,7 @@ app.all("/hooks", function(req, res){
                 });
         break;
         case "mod_update":
-            let msg = printMod(mod, {
+            msg = printMod(mod, {
                 title: "Доступно обновление мода!",
                 tags:true,
                 github:true,
@@ -50,7 +57,7 @@ app.all("/hooks", function(req, res){
                 changelog:true
             });
 
-            let peers = Follow.getPeersFollowMod(mod.id);
+            peers = Follow.getPeersFollowMod(mod.id);
             for(let i in peers)
                 VKAPI.invokeMethod("messages.send", {
                     random_id:0,
@@ -59,7 +66,8 @@ app.all("/hooks", function(req, res){
                 });
         
             break;
-        case "comment_add": break;
+        case "comment_add":
+            break;
 
         case "mod_edit":
         case "icon_update":
@@ -68,14 +76,14 @@ app.all("/hooks", function(req, res){
         case "screenshot_delete":
         case "user_register":
             return res.sendStatus(400);
-
+                
         default:
             return res.sendStatus(400);
     }
 	res.sendStatus(200);
 });
 
-app.listen(port, function(err){
+app.listen(config.http_server_port, function(err){
     if (err) {
         throw err;
     }
