@@ -1,7 +1,8 @@
 new Command("ID", "(?:(?:\\/)?id|мод|mod)\\s([0-9]+)", async function (args, msg) {
     let mod = await ICModsAPI.description(parseInt(args[1]));
-    if(mod.error || mod.enabled == 0)
+    if(mod.error || mod.enabled == 0 || typeof mod == "string")
         return msg.reply("Мод с данным ID не найден.");
+    
 
     mod.description = (await ICModsAPI.listForIDs([mod.id]))[0].description;
 
@@ -53,8 +54,8 @@ new Command("Подписаться на обновления", "(под|от)п
                         "Вы отписались от уведомлений об обновлении всех модов.";
     }else{
         let mod = await ICModsAPI.description(id);
-        if(mod.error){
-           message = `Мод с id ${id} не найден`; 
+        if(mod.error || mod.enabled == 0 || typeof mod == "string"){
+            message = `Мод с id ${id} не найден`; 
         }else{
             if(follow){
                 following.followMod(id);

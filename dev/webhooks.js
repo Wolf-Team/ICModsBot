@@ -1,4 +1,4 @@
-const app = express();
+const app = express(), port = config.http_server_port;
 app.use(express.json());
 
 /** type             | params
@@ -83,7 +83,7 @@ app.all("/hooks", async function(req, res){
 	res.sendStatus(200);
 });
 
-app.listen(config.http_server_port, function(err){
+app.listen(port, function(err){
     if (err) {
         throw err;
     }
