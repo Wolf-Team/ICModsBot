@@ -63,7 +63,7 @@ function printMod(mod, settings){
 }
 
 function printComment(settings){
-	return `Новый комментарий под модом ${settings.mod_titile}!
+	return `Новый комментарий под модом ${settings.mod_title}!
 
 👤 Автор ${settings.author}
 - ${settings.comment}

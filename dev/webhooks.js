@@ -76,12 +76,12 @@ app.all("/hooks", async function(req, res){
             break;
         case "comment_add":
             msg = printComment({
-                mod_name:mod.title,
+                mod_title:mod.title,
                 mod_id:mod.id,
                 author:event.user_id,
                 comment:event.comment
             });
-            
+
             peers = Follow.getPeersFollowing({
                 author:mod.author,
                 mod:mod.id

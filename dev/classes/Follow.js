@@ -103,4 +103,4 @@ Follow.getPeersFollowing = function(obj){
 }
 
 Follow.readDB();
-setTimeout(Follow.writeBD, 60000)
+setTimeout(Follow.writeBD.bind(Follow), 60000);
