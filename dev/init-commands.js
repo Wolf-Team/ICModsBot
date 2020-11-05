@@ -43,12 +43,16 @@ new Command("Подписаться на обновления", "(под|от)п
     let id = parseInt(args[2]);
     let follow = args[1].toLowerCase() == "под";
     
-    let following = Follow.getFor(msg.peer_id);
+    let following = Dialogue.get(msg.peer_id);
     let message = "";
     if(isNaN(id)){
-        following.followAll(follow);
-        message = follow ? "Вы подписались на уведомления об обновлении всех модов." : 
-                        "Вы отписались от уведомлений об обновлении всех модов.";
+        if(follow){
+            following.followAllMods();
+            message = "Вы подписались на уведомления об обновлении всех модов.";
+        }else{
+            following.unfollowAllMods();
+            message = "Вы отписались от уведомлений об обновлении всех модов.";
+        }
     }else{
         let mod = await ICModsAPI.description(id);
         if(mod.error || mod.enabled == 0 || typeof mod == "string"){
@@ -77,8 +81,16 @@ new Command("Подписаться на новые моды", "(под|от)п�
     
     let follow = args[1].toLowerCase() == "под";
 
-    Follow.getFor(msg.peer_id).followNew(follow);
-    msg.reply(follow ? "Вы подписались на уведомления о загрузке новых модов." : "Вы отписались от уведомлений о загрузке новых модов.");
+    let following = Dialogue.get(msg.peer_id);
+    let message = "";
+    if(follow){
+        following.followNewMods();
+        message = "Вы подписались на уведомления об обновлении всех модов.";
+    }else{
+        following.unfollowNewMods();
+        message = "Вы отписались от уведомлений об обновлении всех модов.";
+    }
+    msg.reply(message);
 });
 
 new Command("Подписаться на автора", "(под|от)писаться\\s(?:на|от)\\sавтора\\s([0-9]+)", async function(args, msg){
@@ -93,7 +105,7 @@ new Command("Подписаться на автора", "(под|от)писат
     let id = parseInt(args[2]);
     let follow = args[1].toLowerCase() == "под";
 
-    let following = Follow.getFor(msg.peer_id);
+    let following = Dialogue.get(msg.peer_id);
     if(follow){
         following.followAuthor(id);
         msg.reply("Вы подписались на автора.");
@@ -104,28 +116,28 @@ new Command("Подписаться на автора", "(под|от)писат
 });
 
 new Command("Подписки", "подписки", async function(args, msg){
-    let peer = Follow.getFor(msg.peer_id);
-    if(peer.all)
+    let peer = Dialogue.get(msg.peer_id);
+    if(peer.followingAllMods)
         return msg.reply("Вы следите за всеми модами.");
 
     
     let mess = "";
-    if(peer.new)
+    if(peer.followingNewMods)
         mess = "Вы следите за загрузками новых модов\n";
     
-    if(peer.ids.length > 0){
+    if(peer.followingMods.length > 0){
         mess += "Вы следите за следующими модами:\n";
-        let mods = await ICModsAPI.listForIDs(peer.ids);
+        let mods = await ICModsAPI.listForIDs(peer.followingMods);
         for(let i in mods){
             let mod = mods[i];
             mess += `🔷 ${mod.title} - https://icmods.mineprogramming.org/mod?id=${mod.id}\n`;
         }
     }
 
-    if(peer.authors.length>0){
+    if(peer.followingAuthors.length>0){
         mess += "Вы следите за авторами:\n";
-        for(let i in peer.authors){
-            let author = peer.authors[i];
+        for(let i in peer.followingAuthors){
+            let author = peer.followingAuthors[i];
             mess += `🔷 ${author} - https://icmods.mineprogramming.org/search?author=${author}\n`;
         }
     }
@@ -152,6 +164,6 @@ new Command("Помощь", "(помощь|начать)", (a, msg) => msg.reply
 new Command("/save", "\\/save", (a, msg) => {
     if(VKAPI.isChat(msg.peer_id) || msg.from_id != 93821471) return;
 
-    Follow.writeBD();
+    Dialogue.writeBD();
     msg.reply("Записано, вырубай!");
 });

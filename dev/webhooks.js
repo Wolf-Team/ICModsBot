@@ -41,7 +41,7 @@ app.all("/hooks", async function(req, res){
                 multiplayer:true
             });
 
-            peers = Follow.getPeersFollowing({
+            peers = Dialogue.getPeersFollowing({
                 author:mod.author,
                 mod:mod.id,
                 new:true
@@ -62,7 +62,7 @@ app.all("/hooks", async function(req, res){
                 changelog:true
             });
 
-            peers = Follow.getPeersFollowing({
+            peers = Dialogue.getPeersFollowing({
                 author:mod.author,
                 mod:mod.id
             });
@@ -82,7 +82,7 @@ app.all("/hooks", async function(req, res){
                 comment:event.comment
             });
 
-            peers = Follow.getPeersFollowing({
+            peers = Dialogue.getPeersFollowing({
                 author:mod.author,
                 mod:mod.id
             });
