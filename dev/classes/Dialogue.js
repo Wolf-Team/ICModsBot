@@ -8,11 +8,8 @@ class Dialogue{
     }
     static writeDB(){
         fs.writeFile("dialogues.json", JSON.stringify(this.__dialogues), (err)=>{
-            if(err){
+            if(err)
                 console.log(err);
-            }else{
-                console.log("Dialogues saved!");
-            }
         });
     }
     static init(time = 60000){
