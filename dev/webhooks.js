@@ -36,6 +36,7 @@ app.all("/hooks", async function(req, res){
             });
             break;
         case "mod_add":
+            if(mod.enabled == 0) break;
             msg = printMod(mod, {
                 title: "Загружен новый мод!",
                 tags:true,
@@ -56,6 +57,7 @@ app.all("/hooks", async function(req, res){
                 });
         break;
         case "mod_update":
+            if(mod.enabled == 0) break;
             msg = printMod(mod, {
                 title: "Доступно обновление мода!",
                 tags:true,

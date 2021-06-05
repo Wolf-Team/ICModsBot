@@ -1,6 +1,8 @@
 (new ListenerList())
 .setInterval(10000)
 .setOnNewMod(function(mod){
+    console.log("New:", mod);
+    if(mod.enabled != 1) return;
     let peers = Follow.getPeersFollowNew();
     for(let i in peers){
         VKAPI.invokeMethod("messages.send", {
@@ -24,6 +26,8 @@ ${mod.description}
     }
 })
 .setOnUpdateMod(function(mod){
+    console.log("Update:", mod);
+    if(mod.enabled != 1) return;
     let peers = Follow.getPeersFollowMod(mod.id);
     for(let i in peers){
         VKAPI.invokeMethod("messages.send", {

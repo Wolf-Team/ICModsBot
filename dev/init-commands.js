@@ -196,6 +196,6 @@ new Command("Помощь", "(помощь|начать)", (a, msg) => msg.reply
 new Command("/save", "\\/save", (a, msg) => {
     if(VKAPI.isChat(msg.peer_id) || msg.from_id != 93821471) return;
 
-    Dialogue.writeBD();
+    Dialogue.writeDB();
     msg.reply("Записано, вырубай!");
 });
