@@ -1,93 +1,99 @@
 var ICModsAPI = {
-    DEBUG:false,
-    host:"https://icmods.mineprogramming.org/api/",
-    horizon:true,
-    defaultLang:null,
-    Sort:function(sort){
+    DEBUG: false,
+    host: "https://icmods.mineprogramming.org/api/",
+    horizon: true,
+    defaultLang: null,
+    Sort: function (sort) {
         this.value = sort;
     },
-    Lang:function(sort){
+    Lang: function (sort) {
         this.value = sort;
     },
-    method:function(method, params = {}){
-        if(ICModsAPI.DEBUG) console.log(method, params);
+    method: function (method, params = {}) {
+        if (ICModsAPI.DEBUG) console.log(method, params);
 
-        if(typeof method != "string")
+        if (typeof method != "string")
             throw new TypeError("method was been String");
 
-        if(ICModsAPI.horizon)
+        if (ICModsAPI.horizon)
             params.horizon = true;
 
-        if(!params.lang)
+        if (!params.lang)
             params.lang = ICModsAPI.defaultLang;
 
-        if(params.lang instanceof ICModsAPI.Lang)
+        if (params.lang instanceof ICModsAPI.Lang)
             params.lang = params.lang.value;
-            
+
         return request({
-            url:ICModsAPI.host + method,
+            url: ICModsAPI.host + method,
             method: "GET",
-	    	json: true,
-            qs:params
+            json: true,
+            qs: params
         });
     },
-    
-    description:function(id, lang){
-        if(!isInt(id))
+
+    description: async function (id, lang) {
+        if (!isInt(id))
             throw new TypeError("id was been Int");
 
-        return ICModsAPI.method("description", {
-            id:id,
-            lang:lang
+        let mod = await ICModsAPI.method("description", {
+            id: id,
+            lang: lang
         });
+        mod.hidden = mod.enabled == 0;
+        mod.description = await (async () => {
+            let mod = await ICModsAPI.listForIDs([id]);
+            return mod[0] ? mod[0].description : "";
+        })();
+        return mod;
     },
-    list:function(sort, offset = 0, limit = 20, lang){
-        if(sort === undefined)
+    list: function (sort, offset = 0, limit = 20, lang) {
+        if (sort === undefined)
             sort = ICModsAPI.Sort.POPULAR;
 
-        if(!sort instanceof ICModsAPI.Sort)
+        if (!sort instanceof ICModsAPI.Sort)
             throw new TypeError("sort was been ICModsAPI.Sort");
 
-        if(!isInt(offset))
+        if (!isInt(offset))
             throw new TypeError("offset was been Int");
 
-        if(!isInt(limit))
+        if (!isInt(limit))
             throw new TypeError("limit was been Int");
-        
+
         return ICModsAPI.method("list", {
-            sort:sort.value,
-            start:offset,
-            count:limit,
-            lang:lang
+            sort: sort.value,
+            start: offset,
+            count: limit,
+            lang: lang
         });
     },
-    listForIDs:function(ids, lang){
-        if(!ids instanceof Array)
+    listForIDs: function (ids, lang) {
+        if (!ids instanceof Array)
             throw new TypeError("ids was been Array<Int>");
-        
-        if(ids.findIndex(i => !isInt(i)) != -1)
+
+        if (ids.findIndex(i => !isInt(i)) != -1)
             throw new TypeError("ids was been Array<Int>");
 
         return ICModsAPI.method("list", {
-            ids:ids.join(","),
-            lang:lang
+            ids: ids.join(","),
+            lang: lang
         });
     },
-    searchModsFromAuthor:function(id, lang){
-        if(!isInt(id))
+    searchModsFromAuthor: function (id, lang) {
+        if (!isInt(id))
             throw new TypeError("id was been Int");
 
-        return ICModsAPI.method("search", { author:id, lang:lang });
+        return ICModsAPI.method("search", { author: id, lang: lang });
     },
-    searchModsAtTag:function(tag, lang){
-        if(typeof tag != "string")
+    searchModsAtTag: function (tag, lang) {
+        if (typeof tag != "string")
             throw new TypeError("tag was been String");
-        return ICModsAPI.method("search", { tag:tag, lang:lang });
+        return ICModsAPI.method("search", { tag: tag, lang: lang });
     },
-    searchMods:function(query, lang){
-        if(typeof query != "string")
+    searchMods: function (query, lang) {
+        if (typeof query != "string")
             throw new TypeError("query was been String");
-        return ICModsAPI.method("search", { q:query, lang:lang });
+        return ICModsAPI.method("search", { q: query, lang: lang });
     },
 }
 
@@ -97,7 +103,7 @@ ICModsAPI.Sort.REDACTION = new ICModsAPI.Sort("redaction");
 ICModsAPI.Sort.UPDATED = new ICModsAPI.Sort("updated");
 
 ICModsAPI.defaultLang =
-ICModsAPI.Lang.RU = new ICModsAPI.Lang("ru");
+    ICModsAPI.Lang.RU = new ICModsAPI.Lang("ru");
 ICModsAPI.Lang.EN = new ICModsAPI.Lang("en");
 
 ICModsAPI.getModInfo = ICModsAPI.description;

@@ -14,90 +14,90 @@ app.use(express.json());
   * user_register     | user_id
 **/
 
-app.all("/hooks", async function(req, res){
-    if(!req.body || !req.body.type)
+app.all("/hooks", async function (req, res) {
+    if (!req.body || !req.body.type)
         return res.sendStatus(400);
 
     let event = req.body, mod, msg, peers;
     console.log(event);
 
-    if(event.mod_id){
+    if (event.mod_id) {
         mod = await ICModsAPI.getModInfo(event.mod_id);
-        if(mod.enabled == 1)
-            mod.description = (await ICModsAPI.listForIDs([event.mod_id]))[0].description;
     }
 
-    switch(event.type){
+    switch (event.type) {
         case "test":
             VKAPI.invokeMethod("messages.send", {
-                random_id:0,
-                peer_id:config.owner,
-                message:"Тестовый хук"
+                random_id: 0,
+                peer_id: config.owner,
+                message: "Тестовый хук"
             });
             break;
         case "mod_add":
-            if(mod.enabled == 0) break;
             msg = printMod(mod, {
                 title: "Загружен новый мод!",
-                tags:true,
-                github:true,
-                multiplayer:true
+                tags: true,
+                github: true,
+                multiplayer: true
             });
 
             peers = Dialogue.getPeersFollowing({
-                author:mod.author,
-                mod:mod.id,
-                new:true
+                author: mod.author,
+                mod: mod.id,
+                new: true
             });
-            for(let i in peers)
-                VKAPI.invokeMethod("messages.send", {
-                    random_id:0,
-                    peer_id:peers[i],
-                    message:msg
-                });
-        break;
+            for (let i in peers)
+                if (mod.enabled || isDonut(peers[i]))
+                    VKAPI.invokeMethod("messages.send", {
+                        random_id: 0,
+                        peer_id: peers[i],
+                        message: msg
+                    });
+
+            break;
         case "mod_update":
-            if(mod.enabled == 0) break;
             msg = printMod(mod, {
                 title: "Доступно обновление мода!",
-                tags:true,
-                github:true,
-                multiplayer:true,
-                changelog:true
+                tags: true,
+                github: true,
+                multiplayer: true,
+                changelog: true
             });
 
             peers = Dialogue.getPeersFollowing({
-                author:mod.author,
-                mod:mod.id
+                author: mod.author,
+                mod: mod.id
             });
-            for(let i in peers)
-                VKAPI.invokeMethod("messages.send", {
-                    random_id:0,
-                    peer_id:peers[i],
-                    message:msg
-                });
-        
+            for (let i in peers)
+                if (mod.enabled || isDonut(peers[i]))
+                    VKAPI.invokeMethod("messages.send", {
+                        random_id: 0,
+                        peer_id: peers[i],
+                        message: msg
+                    });
+
             break;
         case "comment_add":
             msg = printComment({
-                mod_title:mod.title,
-                mod_id:mod.id,
-                author:mod.comments[0].user,
-                comment:event.comment
+                mod_title: mod.title,
+                mod_id: mod.id,
+                author: mod.comments[0].user,
+                comment: event.comment
             });
 
             peers = Dialogue.getPeersFollowing({
-                author:mod.author,
-                mod:mod.id
+                author: mod.author,
+                mod: mod.id
             });
 
-            for(let i in peers)
-                VKAPI.invokeMethod("messages.send", {
-                    random_id:0,
-                    peer_id:peers[i],
-                    message:msg
-                });
-        
+            for (let i in peers)
+                if (mod.enabled || isDonut(peers[i]))
+                    VKAPI.invokeMethod("messages.send", {
+                        random_id: 0,
+                        peer_id: peers[i],
+                        message: msg
+                    });
+
             break;
 
         case "mod_edit":
@@ -107,16 +107,9 @@ app.all("/hooks", async function(req, res){
         case "screenshot_delete":
         case "user_register":
             return res.sendStatus(400);
-                
+
         default:
             return res.sendStatus(400);
     }
-	res.sendStatus(200);
-});
-
-app.listen(port, function(err){
-    if (err) {
-        throw err;
-    }
-    console.log(`Web севрер запущен на порту ${port}`);
+    res.sendStatus(200);
 });
