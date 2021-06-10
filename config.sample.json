@@ -1,0 +1,9 @@
+{
+    "dev":false,
+    "http_server_port": 20000,
+    "vk": {
+        "token": "Your token...",
+        "owner": 93821471,
+        "admins": []
+    }
+}

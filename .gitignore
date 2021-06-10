@@ -110,3 +110,5 @@ info.txt
 *.dev.js
 .dev
 dialogues.json
+
+old_dev/**/*
