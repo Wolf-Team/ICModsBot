@@ -86,7 +86,7 @@ class FormData {
                 length += 29 + data.filename.length + data.content.length + (data.mime ? data.mime.length : 10);
             }
         }
-        
+
         return length;
     }
     public getBoundary(): string {
@@ -105,7 +105,7 @@ class FormData {
 
             str += NEW_LINE + NEW_LINE;
             if (typeof data !== "string") {
-                if(data.content instanceof Buffer)
+                if (data.content instanceof Buffer)
                     str += data.content.toString("binary");
                 else
                     str += data.content;
@@ -145,10 +145,10 @@ export default function request(requestSettings: Request): Promise<Buffer | stri
     const url: URL = getURL(requestSettings);
     let data: URLSearchParams | FormData;
     if (requestSettings.data) {
-        if (requestSettings.headers["Content-Type"] && requestSettings.headers["Content-Type"].toString().toLowerCase() == "multipart/form-data"){
+        if (requestSettings.headers["Content-Type"] && requestSettings.headers["Content-Type"].toString().toLowerCase() == "multipart/form-data") {
             data = new FormData();
             requestSettings.headers["Content-Type"] += `; boundary=${data.getBoundary()}`;
-        }else
+        } else
             data = new URLSearchParams(url.searchParams);
 
         for (const key in requestSettings.data) {

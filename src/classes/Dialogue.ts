@@ -2,6 +2,11 @@ import fs from "fs";
 import ICModsAPI from "./ICModsAPI.js";
 
 type DialogueList = { [key: number]: Dialogue };
+interface PeersFollowingSettings {
+    new?: true,
+    author: number,
+    mod: number
+}
 export default class Dialogue {
     private static __dialogues: DialogueList = {};
     private static readDB() {
@@ -29,8 +34,9 @@ export default class Dialogue {
 
         return this.__dialogues[id];
     }
-    public static getPeersFollowing(obj) {
-        let arr = []
+
+    public static getPeersFollowing(obj: PeersFollowingSettings): number[] {
+        let arr: number[] = []
 
         for (let i in this.__dialogues) {
             let user = this.__dialogues[i];
@@ -39,7 +45,7 @@ export default class Dialogue {
                 (obj.author && user.followingAuthors.indexOf(obj.author) != -1) ||
                 (obj.mod && user.followingMods.indexOf(obj.mod) != -1)
             )
-                arr.push(i);
+                arr.push(parseInt(i));
         }
 
         return arr;
