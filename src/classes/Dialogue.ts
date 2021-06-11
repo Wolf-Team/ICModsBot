@@ -52,10 +52,10 @@ export default class Dialogue {
     }
 
     private lang: ICModsAPI.Lang = ICModsAPI.Lang.RU;
-    private followingMods: number[] = [];
-    private followingAuthors: number[] = [];
-    private followingNewMods: boolean = false;
-    private followingAllMods: boolean = false;
+    public followingMods: number[] = [];
+    public followingAuthors: number[] = [];
+    public followingNewMods: boolean = false;
+    public followingAllMods: boolean = false;
 
     constructor(id: number) {
         Dialogue.__dialogues[id] = this;

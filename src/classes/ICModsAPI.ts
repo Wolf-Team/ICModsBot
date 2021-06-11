@@ -208,7 +208,8 @@ namespace ICModsAPI {
         comments: Comment[],
         horizon_optimized: boolean,
         hidden: boolean,
-        description?: string
+        description?: string,
+        error?:string
     }
 }
 

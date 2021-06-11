@@ -1,5 +1,9 @@
+import { GroupSession } from "nodevk-ts";
+import NewMessageEvent, { ClientInfo } from "../../../NodeVK/lib/NewMessageEvent";
+export type API = GroupSession;
 type Pattern = string | RegExp;
-type Call<T> = (...args: any[]) => T;
+
+type Call<T> = (matches: RegExpMatchArray, message: NewMessageEvent, clientInfo: ClientInfo, api: API) => T;
 export default class Command<Out = void> {
     private static list: NodeJS.Dict<Command<any>> = {};
     public static register<T = any>(name: string, pattern: Pattern, call: Call<T>) {
@@ -18,10 +22,10 @@ export default class Command<Out = void> {
         }
         return null;
     }
-    public static Invoke<T = any>(msg: string, ...gArgs: any[]): T {
+    public static Invoke<T = any>(msg: string, message: NewMessageEvent, clientInfo: ClientInfo, api: API): T {
         let cmd = this.Find<T>(msg);
         if (cmd)
-            return cmd.Invoke(msg.match(cmd.pattern), ...gArgs)
+            return cmd.Invoke(msg.match(cmd.pattern), message, clientInfo, api)
     }
 
     private constructor(pattern: Pattern, call: Call<Out>) {
@@ -34,7 +38,7 @@ export default class Command<Out = void> {
     }
     private pattern: RegExp = null;
     private call: Call<Out> = null;
-    public Invoke(...args: any): Out {
-        return this.call(...args);
+    public Invoke(matches: RegExpMatchArray, message: NewMessageEvent, clientInfo: ClientInfo, api: API): Out {
+        return this.call(matches, message, clientInfo, api);
     }
 }
