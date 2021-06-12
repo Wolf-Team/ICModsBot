@@ -1,7 +1,6 @@
 import request, { RequestData } from "./../request.js";
 import { isInt } from "./../utils.js";
 import express, { Express } from "express";
-import { timeStamp } from "console";
 
 namespace ICModsAPI {
     const host: string = "https://icmods.mineprogramming.org/api/";
@@ -170,7 +169,7 @@ namespace ICModsAPI {
         private timer: NodeJS.Timeout;
         private lastTime: number;
 
-        constructor(sort: Sort = Sort.UPDATED, interval: number = 60000) {
+        constructor(interval: number = 60000, sort: Sort = Sort.UPDATED) {
             if (!isInt(interval))
                 throw new TypeError("interval was been Int");
 
@@ -204,14 +203,6 @@ namespace ICModsAPI {
                 this.lastTime = new_timestemp;
             }
         }
-
-        public register(event: string, call: (...a: any[]) => void) {
-            if (event != "mod_add" && event != "mod_update")
-                throw new Error();
-
-            super.register(event, call);
-        }
-
 
         public async start(callback?: () => void): Promise<void> {
             if (this.timer) return;

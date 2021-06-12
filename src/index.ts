@@ -319,11 +319,21 @@ async function main() {
     });
     VKSession.startLongPoll();
 
-    const port = __CONFIG__.get("icmods.callback_port", 80);
-    const CallbackServer: ICModsAPI.Server = new ICModsAPI.CallbackServer(port);
+    const port = __CONFIG__.get<number>("icmods.callback_port", null);
+    const timeout = __CONFIG__.get("icmods.listener_timeout", 60000);
 
-    CallbackServer.register("test", () => VKSession.messages.send(__CONFIG__.get("vk.owner"), "Тестовый хук"));
-    CallbackServer.register("mod_add", async (mod_id) => {
+    let Server: ICModsAPI.Server;
+    let callback: () => void;
+    if (port != null) {
+        Server = new ICModsAPI.CallbackServer(port);
+        callback = () => console.log(`Web севрер запущен на порту ${port}.`);
+    } else {
+        Server = new ICModsAPI.ListenerServer(timeout);
+        callback = () => console.log(`Слушатель запущен с интервалом в ${timeout}мс.`);
+    }
+
+    Server.register("test", () => VKSession.messages.send(__CONFIG__.get("vk.owner"), "Тестовый хук"));
+    Server.register("mod_add", async (mod_id) => {
         const mod = await ICModsAPI.getModInfo(mod_id);
         const msg = printMod(mod, {
             title: "Загружен новый мод!",
@@ -342,7 +352,7 @@ async function main() {
             if (mod.enabled || isDonut(peers[i]))
                 VKSession.messages.send(peers[i], msg);
     })
-    CallbackServer.register("mod_update", async (mod_id) => {
+    Server.register("mod_update", async (mod_id) => {
         const mod = await ICModsAPI.getModInfo(mod_id);
         const msg = printMod(mod, {
             title: "Доступно обновление мода!",
@@ -360,7 +370,7 @@ async function main() {
             if (mod.enabled || isDonut(peers[i]))
                 VKSession.messages.send(peers[i], msg);
     });
-    CallbackServer.register("comment_add", async (mod_id, user_id, comment) => {
+    Server.register("comment_add", async (mod_id, user_id, comment) => {
         const mod = await ICModsAPI.getModInfo(mod_id);
         const msg = printComment({
             mod_title: mod.title,
@@ -379,9 +389,7 @@ async function main() {
                 VKSession.messages.send(peers[i], msg);
     });
 
-    CallbackServer.start(() => {
-        console.log(`Web севрер запущен на порту ${port}`);
-    });
+    Server.start(callback);
 }
 
 main();

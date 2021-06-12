@@ -2,6 +2,7 @@
     "dev": false,
     "icmods": {
         "callback_port": 20000,
+        "listener_timeout": 60000,
         "save_interval": 60000
     },
     "vk": {

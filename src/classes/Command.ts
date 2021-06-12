@@ -1,9 +1,8 @@
-import { GroupSession } from "nodevk-ts";
-import NewMessageEvent, { ClientInfo } from "../../../NodeVK/lib/NewMessageEvent";
+import { NewMessageEvent, ClientInfo, GroupSession } from "nodevk-ts";
 export type API = GroupSession;
 type Pattern = string | RegExp;
 
-type Call<T> = (matches: RegExpMatchArray, message: NewMessageEvent, clientInfo: ClientInfo, api: API) => T;
+type Call<T = void> = (matches: RegExpMatchArray, message: NewMessageEvent, clientInfo: ClientInfo, api: API) => T;
 export default class Command<Out = void> {
     private static list: NodeJS.Dict<Command<any>> = {};
     public static register<T = any>(name: string, pattern: Pattern, call: Call<T>) {
