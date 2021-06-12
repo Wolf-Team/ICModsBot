@@ -1,6 +1,7 @@
 import request, { RequestData } from "./../request.js";
 import { isInt } from "./../utils.js";
 import express, { Express } from "express";
+import { timeStamp } from "console";
 
 namespace ICModsAPI {
     const host: string = "https://icmods.mineprogramming.org/api/";
@@ -110,28 +111,9 @@ namespace ICModsAPI {
         return method<ModDescription[]>("search", { q: query, lang: lang });
     }
 
-    export class CallbackServer {
-        private app: Express;
+
+    export abstract class Server {
         private events: { [key: string]: ((...a: any[]) => void)[] } = {};
-
-        constructor() {
-            this.app = express();
-            this.app.use(express.json());
-            this.app.all("/hooks", (req, res) => {
-                if (!req.body || !req.body.type)
-                    return res.sendStatus(400);
-
-                let args: any[] = [];
-                if (req.body.mod_id) args.push(req.body.mod_id);
-                if (req.body.user_id) args.push(req.body.user_id);
-                if (req.body.comment) args.push(req.body.comment);
-
-                this.invoke(req.body.type, ...args);
-
-                res.sendStatus(200);
-            });
-        }
-
         public register(event: "test", call: () => void): void;
         public register(event: "mod_add" | "mod_update" | "screenshot_delete" | "screenshot_edit" | "screenshot_add" | "mod_edit" | "icon_update", call: (mod_id: number) => void): void;
         public register(event: "comment_add", call: (mod_id: number, user_id: number, comment: string) => void): void;
@@ -150,8 +132,98 @@ namespace ICModsAPI {
                 events.map(e => e(...a));
         }
 
-        public start(port: number = 80, callback?: () => void) {
-            this.app.listen(port, callback);
+        public abstract start(callback?: () => void): void;
+    }
+    export class CallbackServer extends Server {
+        private app: Express;
+        private port: number;
+
+        constructor(port: number = 80) {
+            super();
+            this.port = port;
+
+            this.app = express();
+            this.app.use(express.json());
+            this.app.all("/hooks", (req, res) => {
+                if (!req.body || !req.body.type)
+                    return res.sendStatus(400);
+
+                let args: any[] = [];
+                if (req.body.mod_id) args.push(req.body.mod_id);
+                if (req.body.user_id) args.push(req.body.user_id);
+                if (req.body.comment) args.push(req.body.comment);
+
+                this.invoke(req.body.type, ...args);
+
+                res.sendStatus(200);
+            });
+        }
+
+        public start(callback?: () => void) {
+            this.app.listen(this.port, callback);
+        }
+    }
+
+    export class ListenerServer extends Server {
+        private sort: Sort;
+        private interval: number;
+        private timer: NodeJS.Timeout;
+        private lastTime: number;
+
+        constructor(sort: Sort = Sort.UPDATED, interval: number = 60000) {
+            if (!isInt(interval))
+                throw new TypeError("interval was been Int");
+
+            super();
+            this.interval = interval;
+            this.sort = sort;
+            this.check = this.check.bind(this);
+        }
+
+        private async check() {
+            let checkMod = (await ICModsAPI.list(this.sort, 0, 1))[0];
+            let new_timestemp = (new Date(checkMod.last_update)).getTime();
+            if (this.lastTime < new_timestemp) {
+                let timestemp = new_timestemp, offset = 0;
+                while (timestemp > this.lastTime) {
+                    let mods = await ICModsAPI.list(this.sort, offset * 20, 20);
+
+                    for (let i = 0; i < 20; i++) {
+                        let mod = mods[i];
+                        timestemp = (new Date(mod.last_update)).getTime();
+                        if (timestemp <= this.lastTime) break;
+
+                        if (mod.version == 1)
+                            this.invoke("mod_new", mod.id);
+                        else
+                            this.invoke("mod_update", mod.id);
+                    }
+
+                    offset++;
+                }
+                this.lastTime = new_timestemp;
+            }
+        }
+
+        public register(event: string, call: (...a: any[]) => void) {
+            if (event != "mod_add" && event != "mod_update")
+                throw new Error();
+
+            super.register(event, call);
+        }
+
+
+        public async start(callback?: () => void): Promise<void> {
+            if (this.timer) return;
+
+            this.lastTime = (new Date((await ICModsAPI.list(this.sort, 0, 1))[0].last_update)).getTime();
+            this.timer = setInterval(this.check, this.interval)
+            callback();
+        }
+
+        public stop() {
+            clearInterval(this.timer);
+            this.timer = null;
         }
     }
 
@@ -209,7 +281,7 @@ namespace ICModsAPI {
         horizon_optimized: boolean,
         hidden: boolean,
         description?: string,
-        error?:string
+        error?: string
     }
 }
 

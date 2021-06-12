@@ -319,7 +319,8 @@ async function main() {
     });
     VKSession.startLongPoll();
 
-    const CallbackServer: ICModsAPI.CallbackServer = new ICModsAPI.CallbackServer();
+    const port = __CONFIG__.get("icmods.callback_port", 80);
+    const CallbackServer: ICModsAPI.Server = new ICModsAPI.CallbackServer(port);
 
     CallbackServer.register("test", () => VKSession.messages.send(__CONFIG__.get("vk.owner"), "Тестовый хук"));
     CallbackServer.register("mod_add", async (mod_id) => {
@@ -378,8 +379,7 @@ async function main() {
                 VKSession.messages.send(peers[i], msg);
     });
 
-    const port = __CONFIG__.get("icmods.callback_port", 80);
-    CallbackServer.start(port, () => {
+    CallbackServer.start(() => {
         console.log(`Web севрер запущен на порту ${port}`);
     });
 }
