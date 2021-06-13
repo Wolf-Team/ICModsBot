@@ -317,7 +317,17 @@ async function main() {
     VKSession.on("message_new", function (message: NewMessageEvent) {
         return Command.Invoke(message.message, message, message.ClientInfo, this);
     });
+    VKSession.on("donut_subscription_create", function (message) {
+        __DONUTS__.push(message.user_id);
+    });
+    VKSession.on("donut_subscription_expired", function (message) {
+        delete __DONUTS__[__DONUTS__.indexOf(message.user_id)];
+    });
+    VKSession.on("donut_subscription_cancelled", function (message) {
+        delete __DONUTS__[__DONUTS__.indexOf(message.user_id)];
+    });
     VKSession.startLongPoll();
+
 
     const port = __CONFIG__.get<number>("icmods.callback_port", null);
     const timeout = __CONFIG__.get("icmods.listener_timeout", 60000);
