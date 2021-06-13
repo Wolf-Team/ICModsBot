@@ -9,7 +9,7 @@ import NodeVK, { GroupSession, NewMessageEvent } from "nodevk-ts";
 const __CONFIG__: Config = Config.parseFromFile("config.json");
 const HIDDEN_ICON = __CONFIG__.get("vk.hidden_icon", "🔒");
 const __ADMINS__: number[] = [__CONFIG__.get<number>("vk.owner"), ...__CONFIG__.get<number[]>("vk.admins", [])];
-let __DONUTS__: number[] = [];
+let __DONUTS__: number[] = __CONFIG__.get<number[]>("vk.donuts", []);
 
 function isAdmin(user: number): boolean {
     return __ADMINS__.includes(user);
@@ -310,10 +310,10 @@ async function main() {
     const VKSession = new GroupSession(__CONFIG__.get<string>("vk.token"));
     const group_id = __CONFIG__.get<number>("vk.group_id");
 
-    __DONUTS__ = (await VKSession.invokeMethod<{ items: number[] }>("groups.getMembers", {
+    __DONUTS__.push(...(await VKSession.invokeMethod<{ items: number[] }>("groups.getMembers", {
         group_id: group_id,
         filter: "donut"
-    })).response.items;
+    })).response.items);
 
     VKSession.setSettingsLongPoll(group_id);
     VKSession.on("message_new", function (message: NewMessageEvent) {
