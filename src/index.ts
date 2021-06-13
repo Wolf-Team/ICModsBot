@@ -342,6 +342,18 @@ async function main() {
         callback = () => console.log(`Слушатель запущен с интервалом в ${timeout}мс.`);
     }
 
+    /** type             | params
+     * mod_add           | mod_id
+     * mod_update        | mod_id
+     * comment_add       | mod_id, user_id, comment
+     * 
+     * mod_edit          | mod_id
+     * icon_update       | mod_id
+     * screenshot_add    | mod_id
+     * screenshot_edit   | mod_id
+     * screenshot_delete | mod_id
+     * user_register     | user_id
+    **/
     Server.register("test", () => VKSession.messages.send(__CONFIG__.get("vk.owner"), "Тестовый хук"));
     Server.register("mod_add", async (mod_id) => {
         const mod = await ICModsAPI.getModInfo(mod_id);
