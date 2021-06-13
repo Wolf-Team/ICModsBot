@@ -111,6 +111,6 @@ info.txt
 .dev
 dialogues.json
 
-old_dev/**/*
 out/**/*
 config.json
+config.r.json

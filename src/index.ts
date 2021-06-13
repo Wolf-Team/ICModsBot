@@ -7,12 +7,14 @@ import { beautifyNumber } from "./utils.js";
 import NodeVK, { GroupSession, NewMessageEvent } from "nodevk-ts";
 
 const __CONFIG__: Config = Config.parseFromFile("config.json");
-const HIDDEN_ICON = __CONFIG__.get("vk.idden_icon", "🔒");
+const HIDDEN_ICON = __CONFIG__.get("vk.hidden_icon", "🔒");
+const __ADMINS__: number[] = [__CONFIG__.get<number>("vk.owner"), ...__CONFIG__.get<number[]>("vk.admins", [])];
 let __DONUTS__: number[] = [];
 
 function isAdmin(user: number): boolean {
-    return user == __CONFIG__.get("vk.owner") || __CONFIG__.get<number[]>("vk.admins", []).includes(user);
+    return __ADMINS__.includes(user);
 }
+
 async function isAdminForChat(user_id: number, chat_id: number, api: API): Promise<boolean> {
     if (!NodeVK.isChat(chat_id))
         return true;
@@ -355,7 +357,7 @@ async function main() {
      * user_register     | user_id
     **/
     Server.register("test", () => VKSession.messages.send(__CONFIG__.get("vk.owner"), "Тестовый хук"));
-    Server.register("mod_add", async (mod_id) => {
+    Server.register("mod_add", async mod_id => {
         const mod = await ICModsAPI.getModInfo(mod_id);
         const msg = printMod(mod, {
             title: "Загружен новый мод!",
@@ -374,7 +376,7 @@ async function main() {
             if (mod.enabled || isDonut(peers[i]))
                 VKSession.messages.send(peers[i], msg);
     })
-    Server.register("mod_update", async (mod_id) => {
+    Server.register("mod_update", async mod_id => {
         const mod = await ICModsAPI.getModInfo(mod_id);
         const msg = printMod(mod, {
             title: "Доступно обновление мода!",
@@ -409,6 +411,44 @@ async function main() {
         for (let i in peers)
             if (mod.enabled || isDonut(peers[i]))
                 VKSession.messages.send(peers[i], msg);
+    });
+
+    Server.register("screenshot_add", mod_id => {
+        for (const peer of __ADMINS__)
+            VKSession.messages.send(peer, `Добавлены скриншоты мода ID: ${mod_id}
+            
+            Страница мода: https://icmods.mineprogramming.org/mod?id=${mod_id}
+            Страница мода в админке: https://admin.mineprogramming.org/mod.php?id=${mod_id}`);
+    });
+    Server.register("screenshot_edit", mod_id => {
+        for (const peer of __ADMINS__)
+            VKSession.messages.send(peer, `Изменены скриншоты мода ID: ${mod_id}
+            
+            Страница мода: https://icmods.mineprogramming.org/mod?id=${mod_id}
+            Страница мода в админке: https://admin.mineprogramming.org/mod.php?id=${mod_id}`);
+    });
+    Server.register("screenshot_delete", mod_id => {
+        for (const peer of __ADMINS__)
+            VKSession.messages.send(peer, `Удалены скриншоты мода ID: ${mod_id}
+            
+            Страница мода: https://icmods.mineprogramming.org/mod?id=${mod_id}
+            Страница мода в админке: https://admin.mineprogramming.org/mod.php?id=${mod_id}`);
+    });
+    
+    Server.register("icon_update", mod_id => {
+        for (const peer of __ADMINS__)
+            VKSession.messages.send(peer, `Обновлена иконка мода ID: ${mod_id}
+            
+            Страница мода: https://icmods.mineprogramming.org/mod?id=${mod_id}
+            Страница мода в админке: https://admin.mineprogramming.org/mod.php?id=${mod_id}`);
+    });
+
+    Server.register("mod_edit", mod_id => {
+        for (const peer of __ADMINS__)
+            VKSession.messages.send(peer, `Изменен мод ID: ${mod_id}
+            
+            Страница мода: https://icmods.mineprogramming.org/mod?id=${mod_id}
+            Страница мода в админке: https://admin.mineprogramming.org/mod.php?id=${mod_id}`);
     });
 
     Server.start(callback);
