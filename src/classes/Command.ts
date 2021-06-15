@@ -23,8 +23,15 @@ export default class Command<Out = void> {
     }
     public static Invoke<T = any>(msg: string, message: NewMessageEvent, clientInfo: ClientInfo, api: API): T {
         let cmd = this.Find<T>(msg);
-        if (cmd)
-            return cmd.Invoke(msg.match(cmd.pattern), message, clientInfo, api)
+        if (!cmd) throw new Error("Unknown command");
+        return cmd.Invoke(msg.match(cmd.pattern), message, clientInfo, api)
+    }
+    public static TryInvoke<T = any>(msg: string, message: NewMessageEvent, clientInfo: ClientInfo, api: API): false | [true, T] {
+        try {
+            return [true, this.Invoke<T>(msg, message, clientInfo, api)];
+        } catch (e) {
+            return false;
+        }
     }
 
     private constructor(pattern: Pattern, call: Call<Out>) {

@@ -11,6 +11,17 @@ const HIDDEN_ICON = __CONFIG__.get("vk.hidden_icon", "🔒");
 const __ADMINS__: number[] = [__CONFIG__.get<number>("vk.owner"), ...__CONFIG__.get<number[]>("vk.admins", [])];
 let __DONUTS__: number[] = __CONFIG__.get<number[]>("vk.donuts", []);
 
+const HELP_TEXT = `===== Помощь =====
+🔷 Мод (ID мода) - Вывести информацию о моде
+🔷 Подписки - Информация о подписках на уведомления
+🔷 Подписаться на обновления (ID мода) - Подписаться на уведомления о загрузке обновления мода
+🔷 Подписаться на новые моды - Подписаться на уведомления о загрузке новых модов
+🔷 Подписаться на обновления модов -  Подписаться на уведомления о загрузке новых модов и их обновлений
+🔷 Подписаться на автора (ID автора) - Подписаться на уведомления о загрузке новых модов и их обновлений от автора
+🔷 Статистика загрузок (ID автора) - Статистика загрузок модов автора
+===== Помощь =====
+🔗 Подробнее: https://vk.com/@icmodsbot-description`;
+
 function isAdmin(user: number): boolean {
     return __ADMINS__.includes(user);
 }
@@ -270,18 +281,7 @@ function registerCommands() {
         msg.reply(mess);
     });
 
-    Command.register("Помощь", "(помощь|начать)", (a, msg) => msg.reply(
-        `===== Помощь =====
-🔷 Мод (ID мода) - Вывести информацию о моде
-🔷 Подписки - Информация о подписках на уведомления
-🔷 Подписаться на обновления (ID мода) - Подписаться на уведомления о загрузке обновления мода
-🔷 Подписаться на новые моды - Подписаться на уведомления о загрузке новых модов
-🔷 Подписаться на обновления модов -  Подписаться на уведомления о загрузке новых модов и их обновлений
-🔷 Подписаться на автора (ID автора) - Подписаться на уведомления о загрузке новых модов и их обновлений от автора
-🔷 Статистика загрузок (ID автора) - Статистика загрузок модов автора
-===== Помощь =====
-🔗 Подробнее: https://vk.com/@icmodsbot-description`
-    ))
+    Command.register("Помощь", "(помощь|начать)", (a, msg) => msg.reply(HELP_TEXT));
 
     Command.register("/save", "\\/save", (a, msg) => {
         if (NodeVK.isChat(msg.peer_id) || msg.from_id != __CONFIG__.get("vk.owner")) return;
@@ -316,8 +316,14 @@ async function main() {
     })).response.items);
 
     VKSession.setSettingsLongPoll(group_id);
-    VKSession.on("message_new", function (message: NewMessageEvent) {
-        return Command.Invoke(message.message, message, message.ClientInfo, this);
+    VKSession.on("message_new", async function (message: NewMessageEvent) {
+        const is_chat = NodeVK.isChat(message.peer_id);
+
+        if (!is_chat && await VKSession.groups.isMembers(group_id, message.from_id) == 0)
+            return message.reply("Что бы использовать бота, подпишитесь на группу.");
+
+        if (!is_chat && Command.TryInvoke(message.message, message, message.ClientInfo, this) == false)
+            message.reply("Не понимаю тебя...\n\n" + HELP_TEXT);
     });
     VKSession.on("donut_subscription_create", function (message) {
         __DONUTS__.push(message.user_id);
@@ -328,7 +334,8 @@ async function main() {
     VKSession.on("donut_subscription_cancelled", function (message) {
         delete __DONUTS__[__DONUTS__.indexOf(message.user_id)];
     });
-    VKSession.startLongPoll();
+    console.log("Запуск LongPoll.");
+    VKSession.startLongPoll(() => console.log("LongPoll запущен."));
 
 
     const port = __CONFIG__.get<number>("icmods.callback_port", null);
@@ -434,7 +441,7 @@ async function main() {
             Страница мода: https://icmods.mineprogramming.org/mod?id=${mod_id}
             Страница мода в админке: https://admin.mineprogramming.org/mod.php?id=${mod_id}`);
     });
-    
+
     Server.register("icon_update", mod_id => {
         for (const peer of __ADMINS__)
             VKSession.messages.send(peer, `Обновлена иконка мода ID: ${mod_id}
