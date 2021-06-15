@@ -322,7 +322,7 @@ async function main() {
         if (!is_chat && await VKSession.groups.isMembers(group_id, message.from_id) == 0)
             return message.reply("Что бы использовать бота, подпишитесь на группу.");
 
-        if (!is_chat && Command.TryInvoke(message.message, message, message.ClientInfo, this) == false)
+        if (Command.TryInvoke(message.message, message, message.ClientInfo, this) == false && !is_chat)
             message.reply("Не понимаю тебя...\n\n" + HELP_TEXT);
     });
     VKSession.on("donut_subscription_create", function (message) {
