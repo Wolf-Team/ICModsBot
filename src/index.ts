@@ -26,11 +26,11 @@ function isAdmin(user: number): boolean {
     return __ADMINS__.includes(user);
 }
 
-async function isAdminForChat(user_id: number, chat_id: number, api: API): Promise<boolean> {
+async function isAdminForChat(user_id: number, chat_id: number, event: NewMessageEvent): Promise<boolean> {
     if (!NodeVK.isChat(chat_id))
         return true;
 
-    let r = await api.invokeMethod("messages.getConversationsById", {
+    let r = await event.Session.invokeMethod("messages.getConversationsById", {
         peer_ids: NodeVK.getPeerIDForChat(chat_id)
     });
     if (r.error) throw r.error;
@@ -293,7 +293,7 @@ function registerCommands() {
     Command.register("/tech", "\\/tech", (a, msg) => {
         if (msg.from_id != __CONFIG__.get("vk.owner")) return;
         msg.reply(`peer: ${msg.peer_id}
-        
+
 from: ${msg.from_id}`);
     });
 
@@ -322,7 +322,7 @@ async function main() {
         if (!is_chat && await VKSession.groups.isMembers(group_id, message.from_id) == 0)
             return message.reply("Что бы использовать бота, подпишитесь на группу.");
 
-        if (Command.TryInvoke(message.message, message, message.ClientInfo, this) == false && !is_chat)
+        if (Command.TryInvoke(message.message, message, message.ClientInfo, message) == false && !is_chat)
             message.reply("Не понимаю тебя...\n\n" + HELP_TEXT);
     });
     VKSession.on("donut_subscription_create", function (message) {
@@ -421,21 +421,21 @@ async function main() {
     Server.register("screenshot_add", mod_id => {
         for (const peer of __ADMINS__)
             VKSession.messages.send(peer, `Добавлены скриншоты мода ID: ${mod_id}
-            
+
             Страница мода: https://icmods.mineprogramming.org/mod?id=${mod_id}
             Страница мода в админке: https://admin.mineprogramming.org/mod.php?id=${mod_id}`);
     });
     Server.register("screenshot_edit", mod_id => {
         for (const peer of __ADMINS__)
             VKSession.messages.send(peer, `Изменены скриншоты мода ID: ${mod_id}
-            
+
             Страница мода: https://icmods.mineprogramming.org/mod?id=${mod_id}
             Страница мода в админке: https://admin.mineprogramming.org/mod.php?id=${mod_id}`);
     });
     Server.register("screenshot_delete", mod_id => {
         for (const peer of __ADMINS__)
             VKSession.messages.send(peer, `Удалены скриншоты мода ID: ${mod_id}
-            
+
             Страница мода: https://icmods.mineprogramming.org/mod?id=${mod_id}
             Страница мода в админке: https://admin.mineprogramming.org/mod.php?id=${mod_id}`);
     });
@@ -443,7 +443,7 @@ async function main() {
     Server.register("icon_update", mod_id => {
         for (const peer of __ADMINS__)
             VKSession.messages.send(peer, `Обновлена иконка мода ID: ${mod_id}
-            
+
             Страница мода: https://icmods.mineprogramming.org/mod?id=${mod_id}
             Страница мода в админке: https://admin.mineprogramming.org/mod.php?id=${mod_id}`);
     });
@@ -451,7 +451,7 @@ async function main() {
     Server.register("mod_edit", mod_id => {
         for (const peer of __ADMINS__)
             VKSession.messages.send(peer, `Изменен мод ID: ${mod_id}
-            
+
             Страница мода: https://icmods.mineprogramming.org/mod?id=${mod_id}
             Страница мода в админке: https://admin.mineprogramming.org/mod.php?id=${mod_id}`);
     });

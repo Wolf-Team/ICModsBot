@@ -2,7 +2,7 @@ import { NewMessageEvent, ClientInfo, GroupSession } from "nodevk-ts";
 export type API = GroupSession;
 type Pattern = string | RegExp;
 
-type Call<T = void> = (matches: RegExpMatchArray, message: NewMessageEvent, clientInfo: ClientInfo, api: API) => T;
+type Call<T = void> = (matches: RegExpMatchArray, message: NewMessageEvent, clientInfo: ClientInfo, api: NewMessageEvent) => T;
 export default class Command<Out = void> {
     private static list: NodeJS.Dict<Command<any>> = {};
     public static register<T = any>(name: string, pattern: Pattern, call: Call<T>) {
@@ -21,12 +21,12 @@ export default class Command<Out = void> {
         }
         return null;
     }
-    public static Invoke<T = any>(msg: string, message: NewMessageEvent, clientInfo: ClientInfo, api: API): T {
+    public static Invoke<T = any>(msg: string, message: NewMessageEvent, clientInfo: ClientInfo, api: NewMessageEvent): T {
         let cmd = this.Find<T>(msg);
         if (!cmd) throw new Error("Unknown command");
         return cmd.Invoke(msg.match(cmd.pattern), message, clientInfo, api)
     }
-    public static TryInvoke<T = any>(msg: string, message: NewMessageEvent, clientInfo: ClientInfo, api: API): false | [true, T] {
+    public static TryInvoke<T = any>(msg: string, message: NewMessageEvent, clientInfo: ClientInfo, api: NewMessageEvent): false | [true, T] {
         try {
             return [true, this.Invoke<T>(msg, message, clientInfo, api)];
         } catch (e) {
@@ -44,7 +44,7 @@ export default class Command<Out = void> {
     }
     private pattern: RegExp = null;
     private call: Call<Out> = null;
-    public Invoke(matches: RegExpMatchArray, message: NewMessageEvent, clientInfo: ClientInfo, api: API): Out {
+    public Invoke(matches: RegExpMatchArray, message: NewMessageEvent, clientInfo: ClientInfo, api: NewMessageEvent): Out {
         return this.call(matches, message, clientInfo, api);
     }
 }
