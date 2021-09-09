@@ -1,6 +1,5 @@
 import ICModsAPI from "../ICModsAPI/ICModsAPI.js";
 import Logger from "../NodeScriptApp/Logger.js";
-import { Session } from "nodevk-ts";
 
 export default class ICModsListener {
 	private _server: ICModsAPI.Server;

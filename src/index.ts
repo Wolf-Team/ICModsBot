@@ -1,8 +1,8 @@
+import NodeVK, { GroupSession, NewMessageEvent } from "nodevk-ts";
 import App from "./NodeScriptApp/App.js";
 import Logger from "./NodeScriptApp/Logger.js";
 import Config from "./utils/Config.js";
-import NodeVK, { GroupSession, NewMessageEvent } from "nodevk-ts";
-import ICModsListener, { CallbackServerConfig, ListenerServerConfig } from "./net/ICModsListener.js";
+import ICModsListener, { CallbackServerConfig, ListenerServerConfig } from "./ICMods/ICModsListener.js";
 
 class Application extends App {
 	private _config: Config;
