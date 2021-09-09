@@ -3,11 +3,13 @@ import App from "./NodeScriptApp/App.js";
 import Logger from "./NodeScriptApp/Logger.js";
 import Config from "./utils/Config.js";
 import ICModsListener, { CallbackServerConfig, ListenerServerConfig } from "./ICMods/ICModsListener.js";
+import FollowersDB from "./ICMods/FollowersDB.js";
 
 class Application extends App {
 	private _config: Config;
 	private _icmodsListener: ICModsListener;
 	private _vksession: GroupSession;
+	private _db: FollowersDB;
 
 	protected onShutdown(): void | Promise<void> {
 		// throw new Error("Method not implemented.");
@@ -16,10 +18,19 @@ class Application extends App {
 	protected onLaunch(): void | Promise<void> {
 		this._config = Config.parseFromFile("config.json");
 
+		this.registerDB();
+
 		this.registerVKSession();
 
 		this.registerICModsListener();
 
+	}
+
+	registerDB() {
+		this._db = new FollowersDB(this._config.get("db.save_interval"));
+		Logger.Log("Чтение базы данных", "FollowersDB");
+		this._db.start();
+		Logger.Log("База данных запущена", "FollowersDB");
 	}
 
 	registerVKSession() {
