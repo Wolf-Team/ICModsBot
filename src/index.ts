@@ -13,6 +13,10 @@ class Application extends App {
 	private _vksession: GroupSession;
 	private _db: FollowersDB;
 
+	private get _admins() {
+		return [this._config.get<number>("vk.owner"), ...this._config.get<number[]>("vk.admins", [])];
+	}
+
 	protected onShutdown(): void | Promise<void> {
 		// throw new Error("Method not implemented.");
 	}
@@ -168,21 +172,21 @@ class Application extends App {
 		});
 
 		this._icmodsListener.register("screenshot_add", mod_id => {
-			for (const peer of [this._config.get<number>("vk.owner"), ...this._config.get<number[]>("vk.admins", [])])
+			for (const peer of this._admins)
 				this._vksession.messages.send(peer, `Добавлены скриншоты мода ID: ${mod_id}
 	
 				Страница мода: https://icmods.mineprogramming.org/mod?id=${mod_id}
 				Страница мода в админке: https://admin.mineprogramming.org/mod.php?id=${mod_id}`);
 		});
 		this._icmodsListener.register("screenshot_edit", mod_id => {
-			for (const peer of [this._config.get<number>("vk.owner"), ...this._config.get<number[]>("vk.admins", [])])
+			for (const peer of this._admins)
 				this._vksession.messages.send(peer, `Изменены скриншоты мода ID: ${mod_id}
 	
 				Страница мода: https://icmods.mineprogramming.org/mod?id=${mod_id}
 				Страница мода в админке: https://admin.mineprogramming.org/mod.php?id=${mod_id}`);
 		});
 		this._icmodsListener.register("screenshot_delete", mod_id => {
-			for (const peer of [this._config.get<number>("vk.owner"), ...this._config.get<number[]>("vk.admins", [])])
+			for (const peer of this._admins)
 				this._vksession.messages.send(peer, `Удалены скриншоты мода ID: ${mod_id}
 	
 				Страница мода: https://icmods.mineprogramming.org/mod?id=${mod_id}
@@ -190,7 +194,7 @@ class Application extends App {
 		});
 
 		this._icmodsListener.register("icon_update", mod_id => {
-			for (const peer of [this._config.get<number>("vk.owner"), ...this._config.get<number[]>("vk.admins", [])])
+			for (const peer of this._admins)
 				this._vksession.messages.send(peer, `Обновлена иконка мода ID: ${mod_id}
 	
 				Страница мода: https://icmods.mineprogramming.org/mod?id=${mod_id}
@@ -198,7 +202,7 @@ class Application extends App {
 		});
 
 		this._icmodsListener.register("mod_edit", mod_id => {
-			for (const peer of [this._config.get<number>("vk.owner"), ...this._config.get<number[]>("vk.admins", [])])
+			for (const peer of this._admins)
 				this._vksession.messages.send(peer, `Изменен мод ID: ${mod_id}
 	
 				Страница мода: https://icmods.mineprogramming.org/mod?id=${mod_id}
