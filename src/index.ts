@@ -28,9 +28,10 @@ class Application extends App {
 
 	registerDB() {
 		this._db = new FollowersDB(this._config.get("db.save_interval"));
-		Logger.Log("Чтение базы данных", "FollowersDB");
+		Logger.Log("Запуск базы данных", "FollowersDB");
 		this._db.start();
 		Logger.Log("База данных запущена", "FollowersDB");
+		this._config.get<number[]>("vk.donuts", []).forEach(e => this._db.get(e.toString()).isDon = true);
 	}
 
 	registerVKSession() {
@@ -42,8 +43,20 @@ class Application extends App {
 
 		this.registerVKSessionEvents();
 
+		this._vksession.invokeMethod<{ items: number[] }>("groups.getMembers", {
+			group_id: groupId,
+			filter: "donut"
+		}).then(
+			r => r.response.items.forEach(
+				e => this._db.get(e.toString()).isDon = true
+			)
+		);
+
 		Logger.Log("Запуск LongPoll.", "LongPoll");
 		this._vksession.startLongPoll(() => Logger.Log("LongPoll запущен.", "LongPoll"));
+
+
+		this._config.get<number[]>("vk.donuts", []).map(e => this._db.get(e.toString()).isDon = true);
 	}
 
 	registerICModsListener() {
@@ -61,6 +74,16 @@ class Application extends App {
 		this._vksession.on("message_new", async (message: NewMessageEvent) => {
 			if (message.from_id == this._config.get("vk.owner"))
 				message.reply("Ok");
+		});
+
+		this._vksession.on("donut_subscription_create", (message) => {
+			this._db.get(message.user_id).isDon = true;
+		});
+		this._vksession.on("donut_subscription_expired", (message) => {
+			this._db.get(message.user_id).isDon = false;
+		});
+		this._vksession.on("donut_subscription_cancelled", (message) => {
+			this._db.get(message.user_id).isDon = false;
 		});
 	}
 

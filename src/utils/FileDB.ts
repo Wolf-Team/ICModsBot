@@ -1,5 +1,4 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
-import { writeFile } from "fs/promises";
 import { parse } from "path";
 import Logger from "../NodeScriptApp/Logger.js";
 
