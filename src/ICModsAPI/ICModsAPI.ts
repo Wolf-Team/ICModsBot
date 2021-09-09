@@ -1,6 +1,11 @@
-import request, { RequestData } from "./../request.js";
-import { isInt } from "./../utils.js";
 import express, { Express } from "express";
+import request, { RequestData } from "./request.js";
+
+function isInt(a: number) {
+    return a == parseInt(<string><unknown>a);
+}
+
+
 
 namespace ICModsAPI {
     const host: string = "https://icmods.mineprogramming.org/api/";
@@ -117,7 +122,7 @@ namespace ICModsAPI {
         public register(event: "mod_add" | "mod_update" | "screenshot_delete" | "screenshot_edit" | "screenshot_add" | "mod_edit" | "icon_update", call: (mod_id: number) => void): void;
         public register(event: "comment_add", call: (mod_id: number, user_id: number, comment: string) => void): void;
         public register(event: "user_register", call: (user_id: number) => void): void;
-
+        public register(event: string, call: (...a: any[]) => void): void;
         public register(event: string, call: (...a: any[]) => void): void {
             if (!this.events.hasOwnProperty(event))
                 this.events[event] = [];
@@ -132,6 +137,7 @@ namespace ICModsAPI {
         }
 
         public abstract start(callback?: () => void): void;
+        public abstract stop(callback?: () => void): void;
     }
     export class CallbackServer extends Server {
         private app: Express;
@@ -160,6 +166,9 @@ namespace ICModsAPI {
 
         public start(callback?: () => void) {
             this.app.listen(this.port, callback);
+        }
+        public stop(callback?: () => void): void {
+            callback && callback();
         }
     }
 
@@ -209,12 +218,13 @@ namespace ICModsAPI {
 
             this.lastTime = (new Date((await ICModsAPI.list(this.sort, 0, 1))[0].last_update)).getTime();
             this.timer = setInterval(this.check, this.interval)
-            callback();
+            callback && callback();
         }
 
-        public stop() {
+        public stop(callback?: () => void) {
             clearInterval(this.timer);
             this.timer = null;
+            callback && callback();
         }
     }
 
