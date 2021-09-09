@@ -4,6 +4,8 @@ import Logger from "./NodeScriptApp/Logger.js";
 import Config from "./utils/Config.js";
 import ICModsListener, { CallbackServerConfig, ListenerServerConfig } from "./ICMods/ICModsListener.js";
 import FollowersDB from "./ICMods/FollowersDB.js";
+import ICModsAPI from "./ICModsAPI/ICModsAPI.js";
+import { printComment, printMod } from "./utils/utils.js";
 
 class Application extends App {
 	private _config: Config;
@@ -93,7 +95,115 @@ class Application extends App {
 	}
 
 	registerICModsListenerEvents() {
+		this._icmodsListener.register("test", () => this._vksession.messages.send(this._config.get("vk.owner"), "Тестовый хук"));
 
+		this._icmodsListener.register("mod_add", async mod_id => {
+			const mod = await ICModsAPI.getModInfo(mod_id);
+			const msg = printMod(mod, {
+				title: "Загружен новый мод!",
+				tags: true,
+				github: true,
+				multiplayer: true
+			});
+
+			const followers = this._db.search(follower => {
+				if (mod.hidden && !follower.isDon) return false;
+				return follower.allMod && follower.isDon ||
+					follower.newMod && follower.isDon ||
+					follower.authors.indexOf(mod.author) != -1 ||
+					follower.mods.indexOf(mod.id) != -1;
+			});
+
+			for (const follower of followers)
+				if (!NodeVK.isChat(follower.id) && !this._vksession.groups.isMembers(this._config.get("vk.group_id"), follower.id))
+					this._vksession.messages.send(follower.id, "Вы подписались на событие, но пропустили его. Подпишитесь на группу, что бы больше не пропускать события.");
+				else
+					this._vksession.messages.send(follower.id, msg);
+		});
+
+		this._icmodsListener.register("mod_update", async mod_id => {
+			const mod = await ICModsAPI.getModInfo(mod_id);
+			const msg = printMod(mod, {
+				title: "Доступно обновление мода!",
+				tags: true,
+				github: true,
+				multiplayer: true,
+				changelog: true
+			});
+
+			const followers = this._db.search(follower => {
+				if (mod.hidden && !follower.isDon) return false;
+				return follower.allMod && follower.isDon ||
+					follower.authors.indexOf(mod.author) != -1 ||
+					follower.mods.indexOf(mod.id) != -1;
+			});
+
+			for (const follower of followers)
+				if (!NodeVK.isChat(follower.id) && !this._vksession.groups.isMembers(this._config.get("vk.group_id"), follower.id))
+					this._vksession.messages.send(follower.id, "Вы подписались на событие, но пропустили его. Подпишитесь на группу, что бы больше не пропускать события.");
+				else
+					this._vksession.messages.send(follower.id, msg);
+		});
+		this._icmodsListener.register("comment_add", async (mod_id, user_id, comment) => {
+			const mod = await ICModsAPI.getModInfo(mod_id);
+			const msg = printComment({
+				mod_title: mod.title,
+				mod_id: mod.id,
+				author: mod.comments[0].user,
+				comment: comment
+			});
+
+			const followers = this._db.search(follower => {
+				if (mod.hidden && !follower.isDon) return false;
+				return follower.allMod && follower.isDon ||
+					follower.authors.indexOf(mod.author) != -1 ||
+					follower.mods.indexOf(mod.id) != -1;
+			});
+
+			for (const follower of followers)
+				if (!NodeVK.isChat(follower.id) && !this._vksession.groups.isMembers(this._config.get("vk.group_id"), follower.id))
+					this._vksession.messages.send(follower.id, "Вы подписались на событие, но пропустили его. Подпишитесь на группу, что бы больше не пропускать события.");
+				else
+					this._vksession.messages.send(follower.id, msg);
+		});
+
+		this._icmodsListener.register("screenshot_add", mod_id => {
+			for (const peer of [this._config.get<number>("vk.owner"), ...this._config.get<number[]>("vk.admins", [])])
+				this._vksession.messages.send(peer, `Добавлены скриншоты мода ID: ${mod_id}
+	
+				Страница мода: https://icmods.mineprogramming.org/mod?id=${mod_id}
+				Страница мода в админке: https://admin.mineprogramming.org/mod.php?id=${mod_id}`);
+		});
+		this._icmodsListener.register("screenshot_edit", mod_id => {
+			for (const peer of [this._config.get<number>("vk.owner"), ...this._config.get<number[]>("vk.admins", [])])
+				this._vksession.messages.send(peer, `Изменены скриншоты мода ID: ${mod_id}
+	
+				Страница мода: https://icmods.mineprogramming.org/mod?id=${mod_id}
+				Страница мода в админке: https://admin.mineprogramming.org/mod.php?id=${mod_id}`);
+		});
+		this._icmodsListener.register("screenshot_delete", mod_id => {
+			for (const peer of [this._config.get<number>("vk.owner"), ...this._config.get<number[]>("vk.admins", [])])
+				this._vksession.messages.send(peer, `Удалены скриншоты мода ID: ${mod_id}
+	
+				Страница мода: https://icmods.mineprogramming.org/mod?id=${mod_id}
+				Страница мода в админке: https://admin.mineprogramming.org/mod.php?id=${mod_id}`);
+		});
+
+		this._icmodsListener.register("icon_update", mod_id => {
+			for (const peer of [this._config.get<number>("vk.owner"), ...this._config.get<number[]>("vk.admins", [])])
+				this._vksession.messages.send(peer, `Обновлена иконка мода ID: ${mod_id}
+	
+				Страница мода: https://icmods.mineprogramming.org/mod?id=${mod_id}
+				Страница мода в админке: https://admin.mineprogramming.org/mod.php?id=${mod_id}`);
+		});
+
+		this._icmodsListener.register("mod_edit", mod_id => {
+			for (const peer of [this._config.get<number>("vk.owner"), ...this._config.get<number[]>("vk.admins", [])])
+				this._vksession.messages.send(peer, `Изменен мод ID: ${mod_id}
+	
+				Страница мода: https://icmods.mineprogramming.org/mod?id=${mod_id}
+				Страница мода в админке: https://admin.mineprogramming.org/mod.php?id=${mod_id}`);
+		});
 	}
 }
 
