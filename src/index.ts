@@ -28,10 +28,8 @@ class Application extends App {
 
 		this._vksession = new GroupSession(token);
 		this._vksession.setSettingsLongPoll(groupId);
-		this._vksession.on("message_new", async (message: NewMessageEvent) => {
-			if (message.from_id == this._config.get("vk.owner"))
-				message.reply("Ok");
-		});
+
+		this.registerVKSessionEvents();
 
 		Logger.Log("Запуск LongPoll.", "LongPoll");
 		this._vksession.startLongPoll(() => Logger.Log("LongPoll запущен.", "LongPoll"));
@@ -45,6 +43,14 @@ class Application extends App {
 		);
 		this.registerICModsListenerEvents();
 		this._icmodsListener.start();
+	}
+
+
+	registerVKSessionEvents() {
+		this._vksession.on("message_new", async (message: NewMessageEvent) => {
+			if (message.from_id == this._config.get("vk.owner"))
+				message.reply("Ok");
+		});
 	}
 
 	registerICModsListenerEvents() {
