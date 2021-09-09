@@ -15,15 +15,15 @@ class Application extends App {
 		// throw new Error("Method not implemented.");
 	}
 
-	protected onLaunch(): void | Promise<void> {
+	protected async onLaunch(): Promise<void> {
 		this._config = Config.parseFromFile("config.json");
 
 		this.registerDB();
 
-		this.registerVKSession();
-
-		this.registerICModsListener();
-
+		await Promise.all([
+			this.registerVKSession(),
+			this.registerICModsListener()
+		]);
 	}
 
 	registerDB() {
@@ -34,7 +34,9 @@ class Application extends App {
 		this._config.get<number[]>("vk.donuts", []).forEach(e => this._db.get(e.toString()).isDon = true);
 	}
 
-	registerVKSession() {
+	async registerVKSession() {
+		const promises: Promise<any>[] = [];
+
 		const groupId = this._config.get("vk.group_id"),
 			token = this._config.get("vk.token");
 
@@ -43,30 +45,33 @@ class Application extends App {
 
 		this.registerVKSessionEvents();
 
-		this._vksession.invokeMethod<{ items: number[] }>("groups.getMembers", {
-			group_id: groupId,
-			filter: "donut"
-		}).then(
-			r => r.response.items.forEach(
-				e => this._db.get(e.toString()).isDon = true
+		promises.push(
+			this._vksession.invokeMethod<{ items: number[] }>("groups.getMembers", {
+				group_id: groupId,
+				filter: "donut"
+			}).then(
+				r => r.response.items.forEach(
+					e => this._db.get(e.toString()).isDon = true
+				)
 			)
 		);
 
 		Logger.Log("Запуск LongPoll.", "LongPoll");
-		this._vksession.startLongPoll(() => Logger.Log("LongPoll запущен.", "LongPoll"));
+		promises.push(new Promise((r, e) => {
+			this._vksession.startLongPoll(() => r(Logger.Log("LongPoll запущен.", "LongPoll")));
+		}));
 
-
-		this._config.get<number[]>("vk.donuts", []).map(e => this._db.get(e.toString()).isDon = true);
+		await Promise.all(promises);
 	}
 
-	registerICModsListener() {
+	async registerICModsListener() {
 		let port = this._config.get("icmods.callback_port", null);
 		this._icmodsListener = new ICModsListener(
 			port ? new CallbackServerConfig(port) :
 				new ListenerServerConfig(this._config.get("icmods.listener_timeout", 60000))
 		);
 		this.registerICModsListenerEvents();
-		this._icmodsListener.start();
+		await new Promise<void>(r => this._icmodsListener.start(r));
 	}
 
 
