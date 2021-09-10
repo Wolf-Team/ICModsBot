@@ -27,7 +27,7 @@ export default class FileDB<T extends FileDBObject> {
 		writeFileSync(this._config.path, JSON.stringify(this._db), { encoding: "utf-8" });
 	}
 
-	private writeDB(): void {
+	public writeDB(): void {
 		Logger.Log("Запись файла базы данных", this._tag);
 		this.writeFile();
 		Logger.Log("База данных сохранена", this._tag);
