@@ -5,7 +5,8 @@
   "type": "module",
   "main": "out/index.js",
   "scripts": {
-    "start": "node --experimental-modules -r source-map-support/register out/index.js",
+    "build": "tsc -p tsconfig.json",
+    "start": "node --experimental-modules -r source-map-support/register out/index.js -d",
     "buildstart": "tsc -p tsconfig.json & cls & npm start",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

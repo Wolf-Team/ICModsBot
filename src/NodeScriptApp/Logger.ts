@@ -87,7 +87,7 @@ export default class Logger {
 	}
 
 
-	public static readonly instance = new Logger("./logs", "APP", true);
+	public static readonly instance = new Logger("./logs", "APP", process.argv.find(e => e == "-d" || e == "-debug") != null);
 	public static readonly Message: (message: string, tag?: string) => void = Logger.instance.Message.bind(Logger.instance);
 	public static readonly Log: (message: string, tag?: string) => void = Logger.instance.Log.bind(Logger.instance);
 	public static readonly Warning: (message: string, tag?: string) => void = Logger.instance.Warning.bind(Logger.instance);
