@@ -103,14 +103,10 @@ dist
 # TernJS port file
 .tern-port
 .vscode/*
-dev/sec.js
-main.js
-follows.json
-info.txt
-*.dev.js
-.dev
-dialogues.json
 
-out/**/*
+out
 config.json
 config.r.json
+
+old_src
+db

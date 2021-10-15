@@ -2,9 +2,9 @@
     "dev": false,
     "icmods": {
         "callback_port": 20000,
-        "listener_timeout": 60000,
-        "save_interval": 60000
+        "listener_timeout": 60000
     },
+    "db.save_interval": 60000,
     "vk": {
         "token": "Your token...",
         "group_id": 199918678,
