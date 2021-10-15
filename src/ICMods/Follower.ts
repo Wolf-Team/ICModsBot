@@ -100,10 +100,10 @@ export default class Follower implements IFollower, FileDBObject<IFollower> {
 		};
 	}
 	public fromJSON(json: IFollower): void {
-		this._mods = json.mods;
-		this._authors = json.authors;
-		this._newMod = json.newMod;
-		this._allMod = json.allMod;
+		this._mods = json.mods || [];
+		this._authors = json.authors || [];
+		this._newMod = json.newMod || false;
+		this._allMod = json.allMod || false;
 		this._id = json.id;
 	}
 

@@ -14,7 +14,7 @@ export default class FollowersDB extends FileDB<Follower> {
 		try {
 			return super.get(key);
 		} catch (e) {
-			const newEl = new Follower(parseInt(key));;
+			const newEl = new Follower(parseInt(key));
 			this.set(key, newEl);
 			return newEl;
 		}
