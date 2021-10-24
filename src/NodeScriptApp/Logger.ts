@@ -27,13 +27,19 @@ enum LoggerType {
 export default class Logger {
 	private fileDescriptor: number;
 	private dateOpen: DateLog;
-	constructor(private readonly folder: string = "/", private readonly tag: string = "APP", private readonly isConsole: boolean = false) {
-		if (!existsSync(folder))
-			mkdirSync(folder);
-		else if (!statSync(folder).isDirectory())
-			throw new Error(`Path ${folder} is not directory!`);
+	private readonly inFile: boolean;
 
-		this.openFile();
+	constructor(private readonly tag: string = "APP", private readonly folder: string = null) {
+		this.inFile = folder != null;
+
+		if (folder) {
+			if (!existsSync(folder))
+				mkdirSync(folder);
+			else if (!statSync(folder).isDirectory())
+				throw new Error(`Path ${folder} is not directory!`);
+
+			this.openFile();
+		}
 	}
 
 	private openFile() {
@@ -51,20 +57,21 @@ export default class Logger {
 
 	private log(type: LoggerType, message: string, tag?: string) {
 		const date = new DateLog();
-		if (date.getFullYear() != this.dateOpen.getFullYear() ||
+		if (this.inFile && (date.getFullYear() != this.dateOpen.getFullYear() ||
 			date.getMonth() != this.dateOpen.getMonth() ||
-			date.getDate() != this.dateOpen.getDate())
+			date.getDate() != this.dateOpen.getDate()))
 			this.openFile();
 
 		const log = `[${type}][${date.toLogString()}][${tag || this.tag}] ${message}`;
-		writeFileSync(this.fileDescriptor, log + "\r\n");
 
-		if (this.isConsole)
-			switch (type) {
-				case LoggerType.ERROR: console.error(log); break;
-				case LoggerType.WARNING: console.warn(log); break;
-				case LoggerType.MESSAGE: console.log(log); break;
-			}
+		if (this.inFile)
+			writeFileSync(this.fileDescriptor, log + "\r\n");
+
+		switch (type) {
+			case LoggerType.ERROR: console.error(log); break;
+			case LoggerType.WARNING: console.warn(log); break;
+			case LoggerType.MESSAGE: console.log(log); break;
+		}
 	}
 
 	public Message(message: string, tag?: string) {
@@ -87,7 +94,7 @@ export default class Logger {
 	}
 
 
-	public static readonly instance = new Logger("./logs", "APP", process.argv.find(e => e == "-d" || e == "-debug") != null);
+	public static readonly instance = new Logger("APP", process.send ? null : "./logs");
 	public static readonly Message: (message: string, tag?: string) => void = Logger.instance.Message.bind(Logger.instance);
 	public static readonly Log: (message: string, tag?: string) => void = Logger.instance.Log.bind(Logger.instance);
 	public static readonly Warning: (message: string, tag?: string) => void = Logger.instance.Warning.bind(Logger.instance);
