@@ -2,9 +2,8 @@ import NodeVK, { GroupSession, NewMessageEvent } from "nodevk-ts";
 import App from "./NodeScriptApp/App.js";
 import Logger from "./NodeScriptApp/Logger.js";
 import Config from "./utils/Config.js";
-import ICModsListener, { CallbackServerConfig, ListenerServerConfig } from "./ICMods/ICModsListener.js";
 import FollowersDB from "./ICMods/FollowersDB.js";
-import ICModsAPI from "./ICModsAPI/ICModsAPI.js";
+import ICModsAPI, { Server, ListenerServer, CallbackServer } from "icmodsapi";
 import { printComment, printMod, beautifyNumber } from "./utils/utils.js";
 import Command from "./utils/Command.js";
 
@@ -22,7 +21,7 @@ const HELP_TEXT = `===== Помощь =====
 
 class Application extends App {
 	private _config: Config;
-	private _icmodsListener: ICModsListener;
+	private _icmodsListener: Server;
 	private _vksession: GroupSession;
 	private _db: FollowersDB;
 
@@ -30,8 +29,9 @@ class Application extends App {
 		return [this._config.get<number>("vk.owner"), ...this._config.get<number[]>("vk.admins", [])];
 	}
 
-	protected onShutdown(): void | Promise<void> {
+	protected async onShutdown(): Promise<void> {
 		this._db.stop();
+		await this._icmodsListener.close();
 	}
 
 	protected async onLaunch(): Promise<void> {
@@ -85,15 +85,17 @@ class Application extends App {
 	}
 
 	async registerICModsListener() {
-		let port = this._config.get("icmods.callback_port", null);
-		this._icmodsListener = new ICModsListener(
-			port ? new CallbackServerConfig(port) :
-				new ListenerServerConfig(this._config.get("icmods.listener_timeout", 60000))
-		);
-		this.registerICModsListenerEvents();
-		await new Promise<void>(r => this._icmodsListener.start(r));
-	}
 
+		const port = this._config.get("icmods.callback_port", null);
+		if (port) {
+			this._icmodsListener = new CallbackServer({ port: port });
+		} else {
+			this._icmodsListener = new ListenerServer(this._config.get("icmods.listener_timeout", 60000));
+		}
+
+		this.registerICModsListenerEvents();
+		await this._icmodsListener.listen();
+	}
 
 	registerVKSessionEvents() {
 		this._vksession.on("message_new", async (message: NewMessageEvent) => {
@@ -118,9 +120,9 @@ class Application extends App {
 	}
 
 	registerICModsListenerEvents() {
-		this._icmodsListener.register("test", () => this._vksession.messages.send(this._config.get("vk.owner"), "Тестовый хук"));
+		this._icmodsListener.on("test", () => this._vksession.messages.send(this._config.get("vk.owner"), "Тестовый хук"));
 
-		this._icmodsListener.register("mod_add", async mod_id => {
+		this._icmodsListener.on("mod_add", async mod_id => {
 			const mod = await ICModsAPI.getModInfo(mod_id);
 			const msg = printMod(mod, {
 				title: "Загружен новый мод!",
@@ -144,7 +146,7 @@ class Application extends App {
 					this._vksession.messages.send(follower.id, msg);
 		});
 
-		this._icmodsListener.register("mod_update", async mod_id => {
+		this._icmodsListener.on("mod_update", async mod_id => {
 			const mod = await ICModsAPI.getModInfo(mod_id);
 			const msg = printMod(mod, {
 				title: "Доступно обновление мода!",
@@ -167,7 +169,7 @@ class Application extends App {
 				else
 					this._vksession.messages.send(follower.id, msg);
 		});
-		this._icmodsListener.register("comment_add", async (mod_id, user_id, comment) => {
+		this._icmodsListener.on("comment_add", async (mod_id, user_id, comment) => {
 			const mod = await ICModsAPI.getModInfo(mod_id);
 			const msg = printComment({
 				mod_title: mod.title,
@@ -190,21 +192,21 @@ class Application extends App {
 					this._vksession.messages.send(follower.id, msg);
 		});
 
-		this._icmodsListener.register("screenshot_add", mod_id => {
+		this._icmodsListener.on("screenshot_add", mod_id => {
 			for (const peer of this._admins)
 				this._vksession.messages.send(peer, `Добавлены скриншоты мода ID: ${mod_id}
 	
 				Страница мода: https://icmods.mineprogramming.org/mod?id=${mod_id}
 				Страница мода в админке: https://admin.mineprogramming.org/mod.php?id=${mod_id}`);
 		});
-		this._icmodsListener.register("screenshot_edit", mod_id => {
+		this._icmodsListener.on("screenshot_edit", mod_id => {
 			for (const peer of this._admins)
 				this._vksession.messages.send(peer, `Изменены скриншоты мода ID: ${mod_id}
 	
 				Страница мода: https://icmods.mineprogramming.org/mod?id=${mod_id}
 				Страница мода в админке: https://admin.mineprogramming.org/mod.php?id=${mod_id}`);
 		});
-		this._icmodsListener.register("screenshot_delete", mod_id => {
+		this._icmodsListener.on("screenshot_delete", mod_id => {
 			for (const peer of this._admins)
 				this._vksession.messages.send(peer, `Удалены скриншоты мода ID: ${mod_id}
 	
@@ -212,7 +214,7 @@ class Application extends App {
 				Страница мода в админке: https://admin.mineprogramming.org/mod.php?id=${mod_id}`);
 		});
 
-		this._icmodsListener.register("icon_update", mod_id => {
+		this._icmodsListener.on("icon_update", mod_id => {
 			for (const peer of this._admins)
 				this._vksession.messages.send(peer, `Обновлена иконка мода ID: ${mod_id}
 	
@@ -220,7 +222,7 @@ class Application extends App {
 				Страница мода в админке: https://admin.mineprogramming.org/mod.php?id=${mod_id}`);
 		});
 
-		this._icmodsListener.register("mod_edit", mod_id => {
+		this._icmodsListener.on("mod_edit", mod_id => {
 			for (const peer of this._admins)
 				this._vksession.messages.send(peer, `Изменен мод ID: ${mod_id}
 	
@@ -245,20 +247,24 @@ class Application extends App {
 
 	registerCommands() {
 		Command.register("ID", "(?:(?:\\/)?id|мод|mod)\\s([0-9]+)", async (args, msg) => {
-			let mod = await ICModsAPI.description(parseInt(args[1]));
+			try {
+				let mod = await ICModsAPI.description(parseInt(args[1]));
 
-			if (mod.error || (mod.hidden && !this._db.get(msg.peer_id.toString()).isDon) || typeof mod == "string")
-				return msg.reply("Мод с данным ID не найден.");
+				if ((mod.hidden && !this._db.get(msg.peer_id.toString()).isDon) || typeof mod == "string")
+					return msg.reply("Мод с данным ID не найден.");
 
 
-			msg.reply(printMod(mod, {
-				downloads: true,
-				likes: true,
-				last_update: true,
-				tags: true,
-				github: true,
-				multiplayer: true
-			}));
+				msg.reply(printMod(mod, {
+					downloads: true,
+					likes: true,
+					last_update: true,
+					tags: true,
+					github: true,
+					multiplayer: true
+				}));
+			} catch (e) {
+				msg.reply("Мод с данным ID не найден.");
+			}
 		});
 
 		Command.register("Statistic download", "Статистика\\sзагрузок\\s([0-9]+)", async function (args, msg) {
@@ -312,26 +318,31 @@ class Application extends App {
 					}
 				}
 			} else {
-				let mod = await ICModsAPI.description(id);
-				if (mod.error || mod.enabled == 0 || typeof mod == "string") {
-					message = `Мод с id ${id} не найден`;
-				} else {
-					if (follow) {
-						try {
-							follower.followMod(id);
-							message = `Вы подписались на уведомления об обновлении ${mod.title}.`
-						} catch (e) {
-							message = `Вы уже подписаны на уведомления об обновлении ${mod.title}.`
-						}
+				try {
+					let mod = await ICModsAPI.description(id);
+					if (!mod.enabled || typeof mod == "string") {
+						message = `Мод с id ${id} не найден`;
 					} else {
-						try {
-							follower.unfollowMod(id);
-							message = `Вы отписались от уведомлений об обновлении ${mod.title}.`
-						} catch (e) {
-							message = `Вы не подписаны на уведомления об обновлении ${mod.title}.`
+						if (follow) {
+							try {
+								follower.followMod(id);
+								message = `Вы подписались на уведомления об обновлении ${mod.title}.`
+							} catch (e) {
+								message = `Вы уже подписаны на уведомления об обновлении ${mod.title}.`
+							}
+						} else {
+							try {
+								follower.unfollowMod(id);
+								message = `Вы отписались от уведомлений об обновлении ${mod.title}.`
+							} catch (e) {
+								message = `Вы не подписаны на уведомления об обновлении ${mod.title}.`
+							}
 						}
 					}
+				} catch (e) {
+					message = `Мод с id ${id} не найден`;
 				}
+
 			}
 			msg.reply(message);
 		});

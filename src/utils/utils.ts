@@ -1,4 +1,4 @@
-import ICModsAPI from "../ICModsAPI/ICModsAPI";
+import ICModsAPI from "icmodsapi";
 const HIDDEN_ICON = "[H]";
 
 interface PrintModSettings {
@@ -11,7 +11,7 @@ interface PrintModSettings {
 	last_update?: true,
 	changelog?: true
 }
-export function printMod(mod: ICModsAPI.Mod, settings: PrintModSettings) {
+export function printMod(mod: ICModsAPI.ModInfo, settings: PrintModSettings) {
 	let str = settings.title ? settings.title + "\n\n" : "";
 
 	if (mod.hidden) str += HIDDEN_ICON + " ";
@@ -29,7 +29,7 @@ export function printMod(mod: ICModsAPI.Mod, settings: PrintModSettings) {
 		str += `🔗 Теги: ${mod.tags.join(", ")}\n`;
 	if (settings.github && mod.github)
 		str += `📝 GitHub: ${mod.github}\n`;
-	if (settings.multiplayer && mod.multiplayer == 1)
+	if (settings.multiplayer && mod.multiplayer)
 		str += "👥 Поддержка мультиплеера\n";
 
 	if (settings.changelog && mod.version > 1)
