@@ -250,7 +250,6 @@ class Application extends App {
 
 	registerCommands() {
 		Command.register("ID", "(?:(?:\\/)?id|мод|mod)\\s([0-9]+)", async (args, msg) => {
-			console.log("Invoke mod");
 			try {
 				let mod = await ICModsAPI.description(parseInt(args[1]), ICModsAPI.Lang.RU);
 
