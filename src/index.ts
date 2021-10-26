@@ -24,6 +24,7 @@ class Application extends App {
 	private _icmodsListener: Server;
 	private _vksession: GroupSession;
 	private _db: FollowersDB;
+	private _all_and_news: number[];
 
 	private get _admins() {
 		return [this._config.get<number>("vk.owner"), ...this._config.get<number[]>("vk.admins", [])];
@@ -36,6 +37,7 @@ class Application extends App {
 
 	protected async onLaunch(): Promise<void> {
 		this._config = Config.parseFromFile("config.json");
+
 
 		this.registerDB();
 
@@ -52,6 +54,7 @@ class Application extends App {
 		this._db.start();
 		Logger.Log("База данных запущена", "FollowersDB");
 		this._config.get<number[]>("vk.donuts", []).forEach(e => this._db.get(e.toString()).isDon = true);
+		this._all_and_news = this._config.get("followers.all_and_news", []);
 	}
 
 	async registerVKSession() {
@@ -123,7 +126,7 @@ class Application extends App {
 		this._icmodsListener.on("test", () => this._vksession.messages.send(this._config.get("vk.owner"), "Тестовый хук"));
 
 		this._icmodsListener.on("mod_add", async mod_id => {
-			const mod = await ICModsAPI.getModInfo(mod_id);
+			const mod = await ICModsAPI.getModInfo(mod_id, ICModsAPI.Lang.RU);
 			const msg = printMod(mod, {
 				title: "Загружен новый мод!",
 				tags: true,
@@ -133,8 +136,8 @@ class Application extends App {
 
 			const followers = this._db.search(follower => {
 				if (mod.hidden && !follower.isDon) return false;
-				return follower.allMod && follower.isDon ||
-					follower.newMod && follower.isDon ||
+				return follower.allMod && (follower.isDon || this._all_and_news.indexOf(follower.id) != -1) ||
+					follower.newMod && (follower.isDon || this._all_and_news.indexOf(follower.id) != -1) ||
 					follower.authors.indexOf(mod.author) != -1 ||
 					follower.mods.indexOf(mod.id) != -1;
 			});
@@ -147,7 +150,7 @@ class Application extends App {
 		});
 
 		this._icmodsListener.on("mod_update", async mod_id => {
-			const mod = await ICModsAPI.getModInfo(mod_id);
+			const mod = await ICModsAPI.getModInfo(mod_id, ICModsAPI.Lang.RU);
 			const msg = printMod(mod, {
 				title: "Доступно обновление мода!",
 				tags: true,
@@ -158,7 +161,7 @@ class Application extends App {
 
 			const followers = this._db.search(follower => {
 				if (mod.hidden && !follower.isDon) return false;
-				return follower.allMod && follower.isDon ||
+				return follower.allMod && (follower.isDon || this._all_and_news.indexOf(follower.id) != -1) ||
 					follower.authors.indexOf(mod.author) != -1 ||
 					follower.mods.indexOf(mod.id) != -1;
 			});
@@ -170,7 +173,7 @@ class Application extends App {
 					this._vksession.messages.send(follower.id, msg);
 		});
 		this._icmodsListener.on("comment_add", async (mod_id, user_id, comment) => {
-			const mod = await ICModsAPI.getModInfo(mod_id);
+			const mod = await ICModsAPI.getModInfo(mod_id, ICModsAPI.Lang.RU);
 			const msg = printComment({
 				mod_title: mod.title,
 				mod_id: mod.id,
@@ -180,7 +183,7 @@ class Application extends App {
 
 			const followers = this._db.search(follower => {
 				if (mod.hidden && !follower.isDon) return false;
-				return follower.allMod && follower.isDon ||
+				return follower.allMod && (follower.isDon || this._all_and_news.indexOf(follower.id) != -1) ||
 					follower.authors.indexOf(mod.author) != -1 ||
 					follower.mods.indexOf(mod.id) != -1;
 			});
@@ -247,8 +250,9 @@ class Application extends App {
 
 	registerCommands() {
 		Command.register("ID", "(?:(?:\\/)?id|мод|mod)\\s([0-9]+)", async (args, msg) => {
+			console.log("Invoke mod");
 			try {
-				let mod = await ICModsAPI.description(parseInt(args[1]));
+				let mod = await ICModsAPI.description(parseInt(args[1]), ICModsAPI.Lang.RU);
 
 				if ((mod.hidden && !this._db.get(msg.peer_id.toString()).isDon) || typeof mod == "string")
 					return msg.reply("Мод с данным ID не найден.");
@@ -263,19 +267,21 @@ class Application extends App {
 					multiplayer: true
 				}));
 			} catch (e) {
+				console.log("Error", e);
 				msg.reply("Мод с данным ID не найден.");
 			}
 		});
 
 		Command.register("Statistic download", "Статистика\\sзагрузок\\s([0-9]+)", async function (args, msg) {
-			let mods = await ICModsAPI.searchModsFromAuthor(parseInt(args[1]));
+			let mods = await ICModsAPI.searchModsFromAuthor(parseInt(args[1]), ICModsAPI.Lang.RU);
 			if (mods.length == 0)
 				return msg.reply("Моды автора не найдены.");
 
 			let str = "";
 			let downloads = 0;
+
 			for (let i in mods) {
-				let mod = await ICModsAPI.description(mods[i].id);
+				let mod = await ICModsAPI.description(mods[i].id, ICModsAPI.Lang.RU);
 				str += `🔷 ${mod.title}: ${beautifyNumber(mod.downloads, " ")}\n`;
 				downloads += mod.downloads;
 			}

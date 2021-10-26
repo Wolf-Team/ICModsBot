@@ -13,12 +13,12 @@
   "author": "WolfTeam",
   "license": "MIT",
   "dependencies": {
-    "icmodsapi": "^1.0.0",
-    "nodevk-ts": "^0.2.2"
+    "icmodsapi": "^1.0.2",
+    "nodevk-ts": "^0.2.3"
   },
   "devDependencies": {
     "@types/express": "^4.17.13",
-    "@types/node": "^15.14.2",
+    "@types/node": "^15.14.9",
     "source-map-support": "^0.5.20"
   }
 }
